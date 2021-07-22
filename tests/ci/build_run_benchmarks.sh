@@ -1,10 +1,10 @@
+#!/bin/bash
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 # run this from the AWSLC root directory!
 
 # build the main aws-lc production library
-cd ../../
 
 AWSLC_ROOT=$(pwd)
 
