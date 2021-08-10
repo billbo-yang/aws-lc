@@ -55,28 +55,29 @@ ninja -C aws-lc-prod/fips_build
 # avoid cpus 0-3 since there are a lot of other things running on them
 # we have a lot of cpus to spare so we can just go from cpu 4 onwards until a better solution is found
 # run the generated benchmarks and wait for them to finish
-taskset -c 4 ./aws-lc-pr/build/tool/awslc_bm -timeout 3 -json > aws-lc-pr_bm.json &
+taskset -c 4 ./aws-lc-pr/build/tool/awslc_bm -timeout 1 -json > aws-lc-pr_bm.json &
 pr_pid=$!
-taskset -c 5 ./aws-lc-pr/fips_build/tool/awslc_bm -timeout 3 -json > aws-lc-pr_fips_bm.json &
-pr_fips_pid=$!
-
-taskset -c 6 ./aws-lc-prod/build/tool/awslc_bm -timeout 3 -json > aws-lc-prod_bm.json &
-prod_pid=$!
-taskset -c 7 ./aws-lc-prod/fips_build/tool/awslc_bm -timeout 3 -json > aws-lc-prod_fips_bm.json &
-prod_fips_pid=$!
-
-taskset -c 8 ./aws-lc-pr/build/tool/ossl_bm -timeout 3 -json > ossl_bm.json &
-ossl_pid=$!
-taskset -c 9 ./aws-lc-pr/build/tool/bssl_bm -timeout 3 -json > bssl_bm.json &
-bssl_pid=$!
-
-# wait for benchmarks to finish
 wait "${pr_pid}"
+
+taskset -c 5 ./aws-lc-pr/fips_build/tool/awslc_bm -timeout 1 -json > aws-lc-pr_fips_bm.json &
+pr_fips_pid=$!
 wait "${pr_fips_pid}"
+
+taskset -c 6 ./aws-lc-prod/build/tool/awslc_bm -timeout 1 -json > aws-lc-prod_bm.json &
+prod_pid=$!
 wait "${prod_pid}"
+
+taskset -c 7 ./aws-lc-prod/fips_build/tool/awslc_bm -timeout 1 -json > aws-lc-prod_fips_bm.json &
+prod_fips_pid=$!
 wait "${prod_fips_pid}"
-wait "${ossl_pid}"
-wait "${bssl_pid}"
+
+#taskset -c 8 ./aws-lc-pr/build/tool/ossl_bm -timeout 3 -json > ossl_bm.json &
+#ossl_pid=$!
+#wait "${ossl_pid}"
+#
+#taskset -c 9 ./aws-lc-pr/build/tool/bssl_bm -timeout 3 -json > bssl_bm.json &
+#bssl_pid=$!
+#wait "${bssl_pid}"
 
 # convert results from .json to .csv
 python3 aws-lc-pr/tests/ci/benchmark_framework/convert_json_to_csv.py aws-lc-pr_bm.json
