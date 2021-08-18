@@ -52,21 +52,23 @@ def main():
     df1.columns = [str(col) + '.1' for col in df1.columns]
     df2.columns = [str(col) + '.2' for col in df2.columns]
 
-    print(df1.columns)
-
     # 2nd column of the dataframe represents the number of calls
-    df1_numCalls = df1['numCalls.1']
-    df2_numCalls = df2['numCalls.2']
+    df1_numCallsPerUSec = df1['numCalls.1']/df1['microseconds.1']
+    df2_numCallsPerUSec = df2['numCalls.2']/df2['microseconds.2']
 
     # put both dataframes side by side for comparison
     dfs = pd.concat([df1, df2], axis=1)
 
     # we want things that have a +15% regression
-    compared = np.where(((df2_numCalls - df1_numCalls)/df1_numCalls*100 <= -15), df1.iloc[:, 0], np.nan)
+    compared = np.where(((df2_numCallsPerUSec - df1_numCallsPerUSec)/df1_numCallsPerUSec*100 <= -15), df1.iloc[:, 0], np.nan)
 
     compared_df = dfs.loc[dfs.iloc[:, 0].isin(compared)]
-    compared_df["Percentage Difference"] = ((compared_df['numCalls.1'] - compared_df['numCalls.2'])
-                                            / compared_df['numCalls.1']*100)
+    compared_df_numCallsPerUSec1 = compared_df['numCalls.1']/compared_df['microseconds.1']
+    compared_df_numCallsPerUSec2 = compared_df['numCalls.2']/compared_df['microseconds.2']
+    compared_df["Percentage Difference"] = ((compared_df_numCallsPerUSec2 - compared_df_numCallsPerUSec1)
+                                            / compared_df_numCallsPerUSec1 * 100)
+
+    print(compared_df)
 
     # if the compared dataframe isn't empty, there are significant regressions present
     if not compared_df.empty:
