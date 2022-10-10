@@ -2080,8 +2080,6 @@ static bool FFDH(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   return write_reply({BIGNUMBytes(DH_get0_pub_key(dh.get())), z});
 }
 
-// todo: replace below with something to find hmac function from name provided once we stop getting compiler errors lol
-template <const EVP_MD *(HMACFunc)()>
 static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   // todo: this probably doesn't work lmao
   const Span<const uint8_t> password = args[0];
@@ -2089,11 +2087,11 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   const Span<const uint8_t> salt = args[2];
   const Span<const uint8_t> salt_len = args[3];
   const Span<const uint8_t> iterations = args[4];
-  // const Span<const uint8_t> hmac_alg = args[5];
+  const Span<const uint8_t> hmac_name = args[5];
   const Span<const uint8_t> key_len = args[6];
   const Span<uint8_t> out_key;
 
-  const EVP_MD* hmac_alg = HMACFunc();
+  const EVP_MD* hmac_alg = HashFromName(hmac_name);
 
   // lets try calling?
   if (!PKCS5_PBKDF2_HMAC(reinterpret_cast<const char*>(password.data()),
@@ -2103,6 +2101,7 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
                           reinterpret_cast<size_t>(iterations.data()),
                           hmac_alg, reinterpret_cast<size_t>(key_len.data()),
                           out_key.data())) {
+    
     return false;
   }
 
@@ -2193,7 +2192,7 @@ static struct {
     {"ECDH/P-384", 3, ECDH<NID_secp384r1>},
     {"ECDH/P-521", 3, ECDH<NID_secp521r1>},
     {"FFDH", 6, FFDH},
-    {"PBKDF", 7, PBKDF<EVP_sha256>},
+    {"PBKDF", 7, PBKDF},
 };
 
 Handler FindHandler(Span<const Span<const uint8_t>> args) {
