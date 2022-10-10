@@ -2091,8 +2091,7 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   const Span<const uint8_t> iterations = args[4];
   // const Span<const uint8_t> hmac_alg = args[5];
   const Span<const uint8_t> key_len = args[6];
-
-  std::vector<uint8_t> out_key(key_len.data());
+  const Span<uint8_t> out_key;
 
   const EVP_MD* hmac_alg = HMACFunc();
 
@@ -2101,13 +2100,11 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
                           reinterpret_cast<size_t>(password_len.data()),
                           salt.data(),
                           reinterpret_cast<size_t>(salt_len.data()),
-                          reinterpret_cast<unsigned int>(iterations.data()),
-                          hmac_alg, key_len.data(),
+                          reinterpret_cast<size_t>(iterations.data()),
+                          hmac_alg, reinterpret_cast<size_t>(key_len.data()),
                           out_key.data())) {
     return false;
   }
-
-  // std::vector<uint8_t> out(out_key.size())
 
   return write_reply({Span<const uint8_t>(out_key)});
 }
@@ -2196,7 +2193,7 @@ static struct {
     {"ECDH/P-384", 3, ECDH<NID_secp384r1>},
     {"ECDH/P-521", 3, ECDH<NID_secp521r1>},
     {"FFDH", 6, FFDH},
-    {"PBKDF", 7, PBKDF},
+    {"PBKDF", 7, PBKDF<EVP_sha256>},
 };
 
 Handler FindHandler(Span<const Span<const uint8_t>> args) {
