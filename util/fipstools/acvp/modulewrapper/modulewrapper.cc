@@ -42,6 +42,7 @@
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
 #include <openssl/span.h>
+#include <openssl/evp.h>
 
 #include "../../../../crypto/fipsmodule/ec/internal.h"
 #include "../../../../crypto/fipsmodule/rand/internal.h"
@@ -392,6 +393,59 @@ static bool GetConfig(const Span<const uint8_t> args[], ReplyCallback write_repl
         "macLen": [{
           "min": 32, "max": 256, "increment": 8
         }]
+      },
+      {
+        "algorithm":"PBKDF",
+        "revision":"1.0",
+        "prereqVals":[
+          {
+            "algorithm":"SHA",
+            "valValue":"same"
+          }
+        ],
+        "capabilities": [
+          {
+            "iterationCount":[
+              {
+                "min":10,
+                "max":1000,
+                "increment":1
+              }
+            ],
+            "keyLen":[
+              {
+                "min":8,
+                "max":4096,
+                "increment":8
+              }
+            ],
+            "passwordLen":[
+              {
+                "min":8,
+                "max":128,
+                "increment":1
+              }
+            ],
+            "saltLen":[
+              {
+                "min":128,
+                "max":4096,
+                "increment":8
+              }
+            ],
+            "hmacAlg":[
+              "SHA-1",
+              "SHA2-224",
+              "SHA2-256",
+              "SHA2-384",
+              "SHA2-512",
+              "SHA3-224",
+              "SHA3-256",
+              "SHA3-384",
+              "SHA3-512"
+            ]
+          }
+        ]
       },
       {
         "algorithm": "ctrDRBG",
@@ -2026,6 +2080,38 @@ static bool FFDH(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   return write_reply({BIGNUMBytes(DH_get0_pub_key(dh.get())), z});
 }
 
+// todo: replace below with something to find hmac function from name provided once we stop getting compiler errors lol
+template <const EVP_MD *(HMACFunc)()>
+static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
+  // todo: this probably doesn't work lmao
+  const Span<const uint8_t> password = args[0];
+  const Span<const uint8_t> password_len = args[1];
+  const Span<const uint8_t> salt = args[2];
+  const Span<const uint8_t> salt_len = args[3];
+  const Span<const uint8_t> iterations = args[4];
+  // const Span<const uint8_t> hmac_alg = args[5];
+  const Span<const uint8_t> key_len = args[6];
+
+  std::vector<uint8_t> out_key(key_len.data());
+
+  const EVP_MD* hmac_alg = HMACFunc();
+
+  // lets try calling?
+  if (!PKCS5_PBKDF2_HMAC(reinterpret_cast<const char*>(password.data()),
+                          reinterpret_cast<size_t>(password_len.data()),
+                          salt.data(),
+                          reinterpret_cast<size_t>(salt_len.data()),
+                          reinterpret_cast<unsigned int>(iterations.data()),
+                          hmac_alg, key_len.data(),
+                          out_key.data())) {
+    return false;
+  }
+
+  // std::vector<uint8_t> out(out_key.size())
+
+  return write_reply({Span<const uint8_t>(out_key)});
+}
+
 static struct {
   char name[kMaxNameLength + 1];
   uint8_t num_expected_args;
@@ -2110,6 +2196,7 @@ static struct {
     {"ECDH/P-384", 3, ECDH<NID_secp384r1>},
     {"ECDH/P-521", 3, ECDH<NID_secp521r1>},
     {"FFDH", 6, FFDH},
+    {"PBKDF", 7, PBKDF},
 };
 
 Handler FindHandler(Span<const Span<const uint8_t>> args) {

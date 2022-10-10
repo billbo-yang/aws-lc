@@ -1,0 +1,28 @@
+[{
+    "vsId": 1,
+    "algorithm": "PBKDF",
+    "revision": "1.0",
+    "testGroups": [
+      {
+        "tgId": 1,
+        "testType": "AFT",
+        "hmacAlg": "SHA2-224",
+        "tests": [
+          {
+            "tcId": 1,
+            "keyLen": 143,
+            "salt": "BC902BA1EB3BD8519B68022F0FC15600D5D27A",
+            "password": "FSLuCqOV",
+            "iterationCount": 955
+          },
+          {
+            "tcId": 2,
+            "keyLen": 188,
+            "salt": "8120C1DED77061BC5ED637DD51174F12",
+            "password": "HCmKuigqgFlqpJv",
+            "iterationCount": 269
+          }
+        ]
+      }
+    ]
+  }]

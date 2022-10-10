@@ -140,10 +140,10 @@ func (a *pbkdf) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 
 			var result [][]uint8
 			// TODO: this probably doesn't work lol
-			result, err = m.Transact(a.algo, 1, []byte(test.Pwd), uint32le(uint32(len(test.Pwd))),
+			result, err = m.Transact(a.algo, 7, []byte(test.Pwd), uint32le(uint32(len(test.Pwd))),
 				salt, uint32le(uint32(len(test.SaltHex)*4)),
 				uint32le(uint32(test.Iterations)), []byte(group.HmacAlg),
-				uint32le(uint32(test.KeyLen)), nil)
+				uint32le(uint32(test.KeyLen)))
 			if err != nil {
 				return nil, err
 			}
