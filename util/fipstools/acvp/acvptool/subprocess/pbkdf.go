@@ -137,15 +137,7 @@ func (a *pbkdf) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 			}
 
 			testResp := pbkdfTestResponse{ID: test.ID}
-			// test to see if we're reading things right in go script
-			fmt.Printf("Go File\n")
-			fmt.Printf("%s\n", test.Pwd)
-			fmt.Printf("%d\n", len(test.Pwd))
-			fmt.Printf("%s\n", test.SaltHex)
-			fmt.Printf("%d\n", len(test.SaltHex)*4)
-			fmt.Printf("%d\n", test.Iterations)
-			fmt.Printf("%s\n", group.HmacAlg)
-			fmt.Printf("%d\n", test.KeyLen)
+
 			var result [][]uint8
 			// TODO: this probably doesn't work lol
 			result, err := m.Transact(a.algo, 1, []byte(test.Pwd), uint32le(uint32(len(test.Pwd))),

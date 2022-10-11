@@ -2091,30 +2091,39 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   const Span<const uint8_t> key_len = args[6];
   const Span<uint8_t> out_key;
 
+  // test
+  unsigned int password_len_uint;
+  memcpy(&password_len_uint, password_len.data(), sizeof(password_len_uint));
+  unsigned int salt_len_uint;
+  memcpy(&salt_len_uint, salt_len.data(), sizeof(salt_len_uint));
+  unsigned int iterations_uint;
+  memcpy(&iterations_uint, iterations.data(), sizeof(iterations_uint));
+  unsigned int key_len_uint;
+  memcpy(&key_len_uint, key_len.data(), sizeof(key_len_uint));
+
+  // properly get password data
+  char* password_char = new char[password_len_uint];
+  memcpy(password_char, password.data(), password_len_uint);
+  password_char[password_len_uint] = '\0';
+  // properly get salt
+  unsigned char* salt_char = new unsigned char[salt_len_uint/4];
+  memcpy(salt_char, salt.data(), salt_len_uint/4);
+  salt_char[salt_len_uint/4] = '\0';
+
+  // get the SHA algorithm we want from the name provided to us
   const EVP_MD* hmac_alg = HashFromName(hmac_name);
 
-  // check to see if we're reading things correctly in C file
-  LOG_ERROR("C file\n");
-  LOG_ERROR("%s\n", reinterpret_cast<const char*>(password.data()));
-  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(password_len.data()));
-  LOG_ERROR("%s\n", salt.data());
-  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(salt_len.data()));
-  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(iterations.data()));
-  LOG_ERROR("%s\n", reinterpret_cast<const char*>(hmac_name.data()));
-  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(key_len.data()));
-
   // lets try calling?
-  if (!PKCS5_PBKDF2_HMAC(reinterpret_cast<const char*>(password.data()),
-                          reinterpret_cast<size_t>(password_len.data()),
-                          salt.data(),
-                          reinterpret_cast<size_t>(salt_len.data()),
-                          reinterpret_cast<size_t>(iterations.data()),
-                          hmac_alg, reinterpret_cast<size_t>(key_len.data()),
-                          out_key.data())) {
-
+  if (!PKCS5_PBKDF2_HMAC(password_char,
+                          password_len_uint,
+                          salt_char, salt_len_uint,
+                          iterations_uint, hmac_alg,
+                          key_len_uint, out_key.data())) {
+    LOG_ERROR("failed while calling pbkdf function\n");
     return false;
   }
 
+  LOG_ERROR("made it through calling pbkdf function\n");
   return write_reply({Span<const uint8_t>(out_key)});
 }
 
