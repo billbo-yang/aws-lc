@@ -2089,7 +2089,6 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   const Span<const uint8_t> iterations = args[4];
   const Span<const uint8_t> hmac_name = args[5];
   const Span<const uint8_t> key_len = args[6];
-  const Span<uint8_t> out_key;
 
   // test
   unsigned int password_len_uint;
@@ -2113,18 +2112,21 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   // get the SHA algorithm we want from the name provided to us
   const EVP_MD* hmac_alg = HashFromName(hmac_name);
 
+  // create pointer for output
+  // uint8_t* out_key = new uint8_t[key_len_uint];
+  std::vector<uint8_t> out_key(key_len_uint);
+
   // lets try calling?
   if (!PKCS5_PBKDF2_HMAC(password_char,
                           password_len_uint,
                           salt_char, salt_len_uint,
                           iterations_uint, hmac_alg,
                           key_len_uint, out_key.data())) {
-    LOG_ERROR("failed while calling pbkdf function\n");
     return false;
   }
 
-  LOG_ERROR("made it through calling pbkdf function\n");
   return write_reply({Span<const uint8_t>(out_key)});
+  // return write_reply({out_key});
 }
 
 static struct {
