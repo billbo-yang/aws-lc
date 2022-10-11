@@ -123,10 +123,10 @@ func (a *pbkdf) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 				return nil, fmt.Errorf("test case %d/%d contains salt %q of bit length %d, but expected bit length between %d and %d", group.ID, test.ID, test.SaltHex, len(test.SaltHex)*4, saltLenMin, saltLenMax)
 			}
 
-			salt, err := hex.DecodeString(test.SaltHex)
-			if err != nil {
-				return nil, fmt.Errorf("failed to decode key in test case %d/%d: %s", group.ID, test.ID, err)
-			}
+			// salt, err := hex.DecodeString(test.SaltHex)
+			// if err != nil {
+			// 	return nil, fmt.Errorf("failed to decode key in test case %d/%d: %s", group.ID, test.ID, err)
+			// }
 
 			if len(test.Pwd) > passwordLenMax || len(test.Pwd) < passwordLenMin {
 				return nil, fmt.Errorf("test case %d/%d contains password %s of length %d, but expected password length between %d and %d", group.ID, test.ID, test.Pwd, len(test.Pwd), passwordLenMin, passwordLenMax)
@@ -137,11 +137,19 @@ func (a *pbkdf) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 			}
 
 			testResp := pbkdfTestResponse{ID: test.ID}
-
+			// test to see if we're reading things right in go script
+			fmt.Printf("Go File\n")
+			fmt.Printf("%s\n", test.Pwd)
+			fmt.Printf("%d\n", len(test.Pwd))
+			fmt.Printf("%s\n", test.SaltHex)
+			fmt.Printf("%d\n", len(test.SaltHex)*4)
+			fmt.Printf("%d\n", test.Iterations)
+			fmt.Printf("%s\n", group.HmacAlg)
+			fmt.Printf("%d\n", test.KeyLen)
 			var result [][]uint8
 			// TODO: this probably doesn't work lol
-			result, err = m.Transact(a.algo, 7, []byte(test.Pwd), uint32le(uint32(len(test.Pwd))),
-				salt, uint32le(uint32(len(test.SaltHex)*4)),
+			result, err := m.Transact(a.algo, 1, []byte(test.Pwd), uint32le(uint32(len(test.Pwd))),
+				[]byte(test.SaltHex), uint32le(uint32(len(test.SaltHex)*4)),
 				uint32le(uint32(test.Iterations)), []byte(group.HmacAlg),
 				uint32le(uint32(test.KeyLen)))
 			if err != nil {

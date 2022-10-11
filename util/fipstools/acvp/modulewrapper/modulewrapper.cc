@@ -2093,6 +2093,16 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
 
   const EVP_MD* hmac_alg = HashFromName(hmac_name);
 
+  // check to see if we're reading things correctly in C file
+  LOG_ERROR("C file\n");
+  LOG_ERROR("%s\n", reinterpret_cast<const char*>(password.data()));
+  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(password_len.data()));
+  LOG_ERROR("%s\n", salt.data());
+  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(salt_len.data()));
+  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(iterations.data()));
+  LOG_ERROR("%s\n", reinterpret_cast<const char*>(hmac_name.data()));
+  LOG_ERROR("%zu\n", reinterpret_cast<size_t>(key_len.data()));
+
   // lets try calling?
   if (!PKCS5_PBKDF2_HMAC(reinterpret_cast<const char*>(password.data()),
                           reinterpret_cast<size_t>(password_len.data()),
@@ -2101,7 +2111,7 @@ static bool PBKDF(const Span<const uint8_t> args[], ReplyCallback write_reply) {
                           reinterpret_cast<size_t>(iterations.data()),
                           hmac_alg, reinterpret_cast<size_t>(key_len.data()),
                           out_key.data())) {
-    
+
     return false;
   }
 
