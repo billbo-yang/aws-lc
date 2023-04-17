@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "__config": "cpp",
+        "__bit_reference": "c",
+        "__split_buffer": "c",
+        "__tree": "c",
+        "initializer_list": "c",
+        "ios": "c",
+        "map": "c",
+        "set": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "locale": "c"
+    }
+}

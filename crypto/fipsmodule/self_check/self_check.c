@@ -848,6 +848,11 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+  if (!RSA_check_fips(rsa_key)) {
+    fprintf(stderr, "RSA FIPS check failed\n");
+    goto err;
+  }
+
   // ECDSA Sign/Verify KAT
 
   // The 'k' value for ECDSA is fixed to avoid an entropy draw.
@@ -891,7 +896,7 @@ int boringssl_fips_self_test(void) {
   }
 #endif
 
-  printf("About to generate P-256 key\n");
+  // printf("About to generate P-256 key\n");
   if (!EC_KEY_generate_key_fips(ec_key)) {
     printf("EC_KEY_generate_key_fips failed\n");
     goto err;
