@@ -445,7 +445,7 @@ int boringssl_fips_self_test(void) {
       0x37, 0xbd, 0x70, 0x53, 0x72, 0xfc, 0xd4, 0x03, 0x79, 0x70, 0xfb,
       0x06, 0x95, 0xb1, 0x2a, 0x82, 0x48, 0xe1, 0x3e, 0xf2, 0x33, 0xfb,
       0xef, 0x29, 0x81, 0x22, 0x45, 0x40, 0x43, 0x70, 0xce,
-#if !defined(BORINGSSL_FIPS_BREAK_SHA_256) || !defined(BORINGSSL_FIPS_BREAK_ECDSA_SIG)
+#if !defined(BORINGSSL_FIPS_BREAK_SHA_256)
       0x0f
 #else
       0x00
@@ -871,11 +871,19 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+#if defined(BORINGSSL_FIPS_BREAK_ECDSA_SIG)
+  *((uint8_t *) kPlaintextSHA256) += 0x01;
+#endif
+
   if (!ECDSA_do_verify(kPlaintextSHA256, sizeof(kPlaintextSHA256), sig,
                        ec_key)) {
     fprintf(stderr, "ECDSA verification KAT failed.\n");
     goto err;
   }
+
+#if defined(BORINGSSL_FIPS_BREAK_ECDSA_SIG)
+  *((uint8_t *) kPlaintextSHA256) -= 0x01;
+#endif
 
   // Primitive Z Computation KAT (IG 9.6).
   ec_group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
