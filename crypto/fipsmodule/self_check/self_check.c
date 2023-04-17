@@ -891,6 +891,12 @@ int boringssl_fips_self_test(void) {
   }
 #endif
 
+  printf("About to generate P-256 key\n");
+  if (!EC_KEY_generate_key_fips(ec_key)) {
+    printf("EC_KEY_generate_key_fips failed\n");
+    goto err;
+  }
+
   // Primitive Z Computation KAT (IG 9.6).
   ec_group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1);
   if (ec_group == NULL) {
