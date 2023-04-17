@@ -842,14 +842,16 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
-  ec_key = self_test_ecdsa_key();
-  if (ec_key == NULL) {
-    fprintf(stderr, "ECDSA KeyGen failed\n");
+  RSA *rsa_key_2 = RSA_new();
+  printf("About to generate RSA key\n");
+  if (!RSA_generate_key_fips(rsa_key_2, 2048, NULL)) {
+    printf("RSA_generate_key_fips failed\n");
     goto err;
   }
 
-  if (!RSA_check_fips(rsa_key)) {
-    fprintf(stderr, "RSA FIPS check failed\n");
+  ec_key = self_test_ecdsa_key();
+  if (ec_key == NULL) {
+    fprintf(stderr, "ECDSA KeyGen failed\n");
     goto err;
   }
 
