@@ -871,7 +871,7 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
-#if defined(BORINGSSL_FIPS_BREAK_ECDSA_SIG)
+#if defined(BORINGSSL_FIPS_BREAK_ECDSA_VER)
   *((uint8_t *) kPlaintextSHA256) += 0x01;
 #endif
 
@@ -881,7 +881,7 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
-#if defined(BORINGSSL_FIPS_BREAK_ECDSA_SIG)
+#if defined(BORINGSSL_FIPS_BREAK_ECDSA_VER)
   *((uint8_t *) kPlaintextSHA256) -= 0x01;
 #endif
 
