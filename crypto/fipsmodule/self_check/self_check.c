@@ -739,6 +739,8 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+
   size_t out_len;
   uint8_t nonce[EVP_AEAD_MAX_NONCE_LENGTH];
   OPENSSL_memset(nonce, 0, sizeof(nonce));
@@ -768,6 +770,8 @@ int boringssl_fips_self_test(void) {
     fprintf(stderr, "EVP_AEAD_CTX_open for AES-128-GCM failed.\n");
     goto err;
   }
+
+  EVP_AEAD_CTX_zero(&aead_ctx);
 
   DES_key_schedule des1, des2, des3;
   DES_cblock des_iv;
@@ -1003,6 +1007,114 @@ int boringssl_fips_self_test(void) {
     fprintf(stderr, "TLS KDF failed.\n");
     goto err;
   }
+
+  /**
+   * The Following are for ATSEC's zeroization tests
+  */
+  // CMAC
+  uint8_t cmacOutput[16];
+  // AES_CMAC calls CMAC_CTX_cleanup when at the end
+  if (!AES_CMAC(cmacOutput, kAESKey, sizeof(kAESKey), kPlaintext, sizeof(kPlaintext))) {
+    fpritnf(stderr, "AES_CMAC failed.\n");
+  }
+
+  // CTR_DRBG_clear is run earlier during the DRBG KAT
+  // HMAC_CTX_cleanup is run during the integrity check
+  // EC_KEY_free is run below
+  // ECDSA_SIG_free is run below
+  // EC_GROUP_free is run below
+  // RSA_free is run below
+  // CRYPTO_tls1_prf is run earlier during the TLS KDF KAT
+  // OPENSSL_cleanse for AES-CBC run earlier during AES_CBC KAT
+  // EVP_AEAD_CTX_zero for AES-GCM run earlier during AES_GCM kat
+  
+  /* Zeroization Tests for AES-ECB */
+  /* AES-ECB Encryption*/
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  if (AES_set_encrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    fprintf(stderr, "AES_set_encrypt_key failed.\n");
+    goto err;
+  }
+  for (size_t j = 0; j < sizeof(kPlaintext) / 16; j++) {
+    AES_ecb_encrypt(&kPlaintext[j * 128], & output[j * 128], &aes_key, AES_ENCRYPT);
+  }
+
+  /* AES-ECB Decryption */
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  if (AES_set_decrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    printf("AES decrypt failed\n");
+    goto err;
+  }
+  for (size_t j = 0; j < out_len / 16; j++) {
+    AES_ecb_encrypt(&output[j * 128], & output[j * 128], &aes_key, AES_DECRYPT);
+  }
+
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+
+  /* Zeroization Tests for AES-CTR */
+  unsigned int num = 0;
+  uint8_t ecount_buf[128];
+  /* AES-CTR Encryption */
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  if (AES_set_encrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    fprintf(stderr, "AES_set_encrypt_key failed.\n");
+    goto err;
+  }
+  AES_ctr128_encrypt(kPlaintext, output, sizeof(kPlaintext), &aes_key, aes_iv, ecount_buf, &num);
+
+  /* AES-CTR Decryption */
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  AES_ctr128_encrypt(output, output, out_len, &aes_key, aes_iv, ecount_buf, &num);
+
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+
+  /* Zeroization Tests for AES-KW */
+  /* AES-KW Wrap */
+  if (AES_set_encrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    fprintf(stderr, "AES_set_encrypt_key failed.\n");
+    goto err;
+  }
+  out_len = AES_wrap_key(&aes_key, NULL, output, kPlaintext, sizeof(kPlaintext));
+
+  /* AES-KW Unwrap */
+  if (AES_set_decrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    fprintf(stderr, "AES decrypt failed.\n");
+    goto err;
+  }
+  out_len = AES_unwrap_key(&aes_key, NULL, output, output, out_len);
+
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));  
+
+  /* Zeroization Tests for AES-CCM */
+  OPENSSL_memset(nonce, 0, sizeof(nonce));
+  if (!EVP_AEAD_CTX_init(&aead_ctx, EVP_aead_aes_128_ccm_bluetooth(), kAESKey, sizeof(kAESKey), 0, NULL)) {
+    fprintf(stderr, "EVP_AED_CTX_init for AES-128-CCM failed.\n");
+    goto err;
+  }
+
+  /* AES-CCM Encryption */
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  if (!EVP_AEAD_CTX_seal(&aead_ctx, output, &out_len, sizeof(output), nonce,
+                        EVP_AEAD_nonce_length(EVP_aead_aes_128_ccm_bluetooth()),
+                        kPlaintext, sizeof(kPlaintext), NULL, 0)) {
+    fprintf(stderr, "EVP_AEAD_CTX_seal for AES-128-CCM failed.\n");
+    goto err;
+  }
+
+  /* AES-CCM Decryption */
+  OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
+  if (AES_set_decrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+    printf("AES decrypt failed\n");
+    goto err;
+  }
+  if (!EVP_AEAD_CTX_open(&aead_ctx, output, &out_len, sizeof(output), nonce,
+                        EVP_AEAD_nonce_length(EVP_aead_aes_128_ccm_bluetooth()),
+                        output, out_len, NULL, 0)) {
+    fprintf(stderr, "EVP_AEAD_CTX_open for AES-128-CCM failed.\n");
+    goto err;
+  }
+  
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));
 
   ret = 1;
 
