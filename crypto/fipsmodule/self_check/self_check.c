@@ -1008,6 +1008,7 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
   /**
    * The Following are for ATSEC's zeroization tests
   */
@@ -1115,6 +1116,7 @@ int boringssl_fips_self_test(void) {
   }
   
   OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+#endif
 
   ret = 1;
 
