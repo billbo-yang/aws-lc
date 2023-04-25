@@ -36,10 +36,12 @@
 #include "../rand/internal.h"
 #include "../tls/internal.h"
 
-static void hexdump(const uint8_t *in, size_t len) {
+static void hexdump(const void *a, size_t len) {
+  const unsigned char *in = (const unsigned char *)a;
   for (size_t i = 0; i < len; i++) {
-    fprintf(stderr, "%02x", in[i]);
+    printf("%02x", in[i]);
   }
+  printf("\n");
 }
 
 static int check_test(const void *expected, const void *actual,
@@ -847,7 +849,6 @@ int boringssl_fips_self_test(void) {
   }
 
   RSA *rsa_key_2 = RSA_new();
-  printf("About to generate RSA key\n");
   if (!RSA_generate_key_fips(rsa_key_2, 2048, NULL)) {
     printf("RSA_generate_key_fips failed\n");
     goto err;
@@ -989,7 +990,17 @@ int boringssl_fips_self_test(void) {
     fprintf(stderr, "CTR-DRBG failed.\n");
     goto err;
   }
+
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= DRBG Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&drbg.ks.rd_key, 16);
+#endif
   CTR_DRBG_clear(&drbg);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("--------- AFTER -----------\n");
+  hexdump(&drbg.ks.rd_key, 16);
+#endif
 
   CTR_DRBG_STATE kZeroDRBG;
   memset(&kZeroDRBG, 0, sizeof(kZeroDRBG));
@@ -1013,18 +1024,36 @@ int boringssl_fips_self_test(void) {
    * The Following are for ATSEC's zeroization tests
   */
   // CMAC
-  uint8_t cmacOutput[16];
-  // AES_CMAC calls CMAC_CTX_cleanup when at the end
-  if (!AES_CMAC(cmacOutput, kAESKey, sizeof(kAESKey), kPlaintext, sizeof(kPlaintext))) {
-    fpritnf(stderr, "AES_CMAC failed.\n");
+   size_t scratch_out_len;
+  CMAC_CTX ctx;
+  CMAC_CTX_init(&ctx);
+
+  const EVP_CIPHER *cipher;
+  switch (sizeof(kAESKey)) {
+    case 16:
+      cipher = EVP_aes_128_cbc();
+      break;
+    case 32:
+      cipher = EVP_aes_256_cbc();
+      break;
+    default:
+      return 0;
   }
+
+  if(!CMAC_Init(&ctx, kAESKey, sizeof(kAESKey), cipher, NULL /* engine */) ||
+                 !CMAC_Update(&ctx, kPlaintext, sizeof(kPlaintext)) ||
+                 !CMAC_Final(&ctx, NULL, &scratch_out_len)) {
+    goto err;
+  }
+  printf("\n\n============= CMAC Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&ctx, 16);
+  CMAC_CTX_cleanup(&ctx);
+  printf("--------- AFTER -----------\n");
+  hexdump(&ctx, 16);
 
   // CTR_DRBG_clear is run earlier during the DRBG KAT
   // HMAC_CTX_cleanup is run during the integrity check
-  // EC_KEY_free is run below
-  // ECDSA_SIG_free is run below
-  // EC_GROUP_free is run below
-  // RSA_free is run below
   // CRYPTO_tls1_prf is run earlier during the TLS KDF KAT
   // OPENSSL_cleanse for AES-CBC run earlier during AES_CBC KAT
   // EVP_AEAD_CTX_zero for AES-GCM run earlier during AES_GCM kat

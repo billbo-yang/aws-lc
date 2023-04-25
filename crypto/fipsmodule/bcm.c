@@ -249,6 +249,11 @@ err:
 }
 
 #if !defined(OPENSSL_ASAN)
+
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+static void hexdump(const void *in, size_t len);
+#endif
+
 int BORINGSSL_integrity_test(void) {
   const uint8_t *const start = BORINGSSL_bcm_text_start;
   const uint8_t *const end = BORINGSSL_bcm_text_end;
@@ -322,7 +327,20 @@ int BORINGSSL_integrity_test(void) {
     fprintf(stderr, "HMAC failed.\n");
     return 0;
   }
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= HMAC Zeroization (Integrity) =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&hmac_ctx.md_ctx, 16);
+  hexdump(&hmac_ctx.o_ctx, 32);
+  hexdump(&hmac_ctx.i_ctx, 32);
+#endif
   HMAC_CTX_cleanup(&hmac_ctx);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("--------- AFTER -----------\n");
+  hexdump(&hmac_ctx.md_ctx, 16);
+  hexdump(&hmac_ctx.o_ctx, 32);
+  hexdump(&hmac_ctx.i_ctx, 32);
+#endif
 
   const uint8_t *expected = BORINGSSL_bcm_text_hash;
 
