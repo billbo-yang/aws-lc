@@ -76,6 +76,10 @@ static int tls1_P_hash(uint8_t *out, size_t out_len,
   int ret = 0;
 
   const size_t chunk = EVP_MD_size(md);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- BEFORE (a1) -----------\n");
+  hexdump(A1, 32);
+#endif
   HMAC_CTX_init(&ctx);
   HMAC_CTX_init(&ctx_tmp);
   HMAC_CTX_init(&ctx_init);
@@ -128,11 +132,47 @@ static int tls1_P_hash(uint8_t *out, size_t out_len,
 
 err:
   OPENSSL_cleanse(A1, sizeof(A1));
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER (a1) -----------\n");
+  hexdump(A1, 32);
+  printf("\n--------- BEFORE (ctx) -----------");
+  printf("\n--------- ctx -----------\n");
+  hexdump(&ctx.md_ctx, 16);
+  hexdump(&ctx.i_ctx, 32);
+  hexdump(&ctx.o_ctx, 32);
+  printf("\n--------- ctx_tmp -----------\n");
+  hexdump(&ctx_tmp.md_ctx, 16);
+  hexdump(&ctx_tmp.i_ctx, 32);
+  hexdump(&ctx_tmp.o_ctx, 32);
+  printf("\n--------- ctx_init -----------\n");
+  hexdump(&ctx_init.md_ctx, 16);
+  hexdump(&ctx_init.i_ctx, 32);
+  hexdump(&ctx_init.o_ctx, 32);
+#endif
   HMAC_CTX_cleanup(&ctx);
   HMAC_CTX_cleanup(&ctx_tmp);
   HMAC_CTX_cleanup(&ctx_init);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER (ctx) -----------");
+  printf("\n--------- ctx -----------\n");
+  hexdump(&ctx.md_ctx, 16);
+  hexdump(&ctx.i_ctx, 32);
+  hexdump(&ctx.o_ctx, 32);
+  printf("\n--------- ctx_tmp -----------\n");
+  hexdump(&ctx_tmp.md_ctx, 16);
+  hexdump(&ctx_tmp.i_ctx, 32);
+  hexdump(&ctx_tmp.o_ctx, 32);
+  printf("\n--------- ctx_init -----------\n");
+  hexdump(&ctx_init.md_ctx, 16);
+  hexdump(&ctx_init.i_ctx, 32);
+  hexdump(&ctx_init.o_ctx, 32);
+#endif
   return ret;
 }
+
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+static void hexdump(const void *in, size_t len);
+#endif
 
 int CRYPTO_tls1_prf(const EVP_MD *digest,
                     uint8_t *out, size_t out_len,
@@ -150,7 +190,16 @@ int CRYPTO_tls1_prf(const EVP_MD *digest,
     goto end;
   }
 
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= TLS KDF Zeroization =============");
+  printf("\n--------- BEFORE (out) -----------\n");
+  hexdump(out, 8);
+#endif
   OPENSSL_memset(out, 0, out_len);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER (out) -----------\n");
+  hexdump(out, 8);
+#endif
 
   if (digest == EVP_md5_sha1()) {
     // If using the MD5/SHA1 PRF, |secret| is partitioned between MD5 and SHA-1.
