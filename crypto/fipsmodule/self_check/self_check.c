@@ -38,12 +38,12 @@
 
 static void hexdump(const void *a, size_t len) {
   const unsigned char *in = (const unsigned char *)a;
-  if(!in) {
-    printf("pointer unassigned\n");
-    return;
-  }
   for (size_t i = 0; i < len; i++) {
-    printf("%02x", in[i]);
+    if(!in || !in[i]) {
+      printf("00");
+    } else {
+      printf("%02x", in[i]);
+    }
   }
   printf("\n");
 }
@@ -1203,14 +1203,14 @@ err:
   printf("\n\n============= RSA Zeroization =============");
   printf("\n--------- BEFORE -----------\n");
   hexdump(rsa_key, 16);
-  hexdump(rsa_key->d, 16);
-  hexdump(rsa_key->e, 16);
-  hexdump(rsa_key->p, 16);
-  hexdump(rsa_key->q, 16);
-  hexdump(rsa_key->n, 16);
-  hexdump(rsa_key->dmp1, 16);
-  hexdump(rsa_key->dmq1, 16);
-  hexdump(rsa_key->iqmp, 16);
+  hexdump(RSA_get0_d(rsa_key), 16);
+  hexdump(RSA_get0_e(rsa_key), 16);
+  hexdump(RSA_get0_p(rsa_key), 16);
+  hexdump(RSA_get0_q(rsa_key), 16);
+  hexdump(RSA_get0_n(rsa_key), 16);
+  hexdump(RSA_get0_dmp1(rsa_key), 16);
+  hexdump(RSA_get0_dmq1(rsa_key), 16);
+  hexdump(RSA_get0_iqmp(rsa_key), 16);
   hexdump(rsa_key->mont_n, 16);
   hexdump(rsa_key->mont_q, 16);
   hexdump(rsa_key->d_fixed, 16);
@@ -1222,14 +1222,14 @@ err:
 #if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
   printf("\n--------- AFTER -----------\n");
   hexdump(rsa_key, 16);
-  hexdump(rsa_key->d, 16);
-  hexdump(rsa_key->e, 16);
-  hexdump(rsa_key->p, 16);
-  hexdump(rsa_key->q, 16);
-  hexdump(rsa_key->n, 16);
-  hexdump(rsa_key->dmp1, 16);
-  hexdump(rsa_key->dmq1, 16);
-  hexdump(rsa_key->iqmp, 16);
+  hexdump(RSA_get0_d(rsa_key), 16);
+  hexdump(RSA_get0_e(rsa_key), 16);
+  hexdump(RSA_get0_p(rsa_key), 16);
+  hexdump(RSA_get0_q(rsa_key), 16);
+  hexdump(RSA_get0_n(rsa_key), 16);
+  hexdump(RSA_get0_dmp1(rsa_key), 16);
+  hexdump(RSA_get0_dmq1(rsa_key), 16);
+  hexdump(RSA_get0_iqmp(rsa_key), 16);
   hexdump(rsa_key->mont_n, 16);
   hexdump(rsa_key->mont_q, 16);
   hexdump(rsa_key->d_fixed, 16);
