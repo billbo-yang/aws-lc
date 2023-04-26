@@ -38,6 +38,10 @@
 
 static void hexdump(const void *a, size_t len) {
   const unsigned char *in = (const unsigned char *)a;
+  if(!in) {
+    printf("pointer unassigned\n");
+    return;
+  }
   for (size_t i = 0; i < len; i++) {
     printf("%02x", in[i]);
   }
@@ -1151,13 +1155,83 @@ int boringssl_fips_self_test(void) {
 
 err:
   EVP_AEAD_CTX_cleanup(&aead_ctx);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= RSA Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(rsa_key, 16);
+  hexdump(rsa_key->d, 16);
+  hexdump(rsa_key->e, 16);
+  hexdump(rsa_key->p, 16);
+  hexdump(rsa_key->q, 16);
+  hexdump(rsa_key->n, 16);
+  hexdump(rsa_key->dmp1, 16);
+  hexdump(rsa_key->dmq1, 16);
+  hexdump(rsa_key->iqmp, 16);
+  hexdump(rsa_key->mont_n, 16);
+  hexdump(rsa_key->mont_q, 16);
+  hexdump(rsa_key->d_fixed, 16);
+  hexdump(rsa_key->dmp1_fixed, 16);
+  hexdump(rsa_key->dmq1_fixed, 16);
+  hexdump(rsa_key->inv_small_mod_large_mont, 16);
+#endif
   RSA_free(rsa_key);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(rsa_key, 16);
+  hexdump(rsa_key->d, 16);
+  hexdump(rsa_key->e, 16);
+  hexdump(rsa_key->p, 16);
+  hexdump(rsa_key->q, 16);
+  hexdump(rsa_key->n, 16);
+  hexdump(rsa_key->dmp1, 16);
+  hexdump(rsa_key->dmq1, 16);
+  hexdump(rsa_key->iqmp, 16);
+  hexdump(rsa_key->mont_n, 16);
+  hexdump(rsa_key->mont_q, 16);
+  hexdump(rsa_key->d_fixed, 16);
+  hexdump(rsa_key->dmp1_fixed, 16);
+  hexdump(rsa_key->dmq1_fixed, 16);
+  hexdump(rsa_key->inv_small_mod_large_mont, 16);
+  printf("\n\n============= EC KEYS Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(ec_key->pub_key, 32);
+  hexdump(ec_key->priv_key, 32);
+#endif
   EC_KEY_free(ec_key);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(ec_key->pub_key, 32);
+  hexdump(ec_key->priv_key, 32);
+#endif
   EC_POINT_free(ec_point_in);
   EC_POINT_free(ec_point_out);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= ECDSA Group Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(ec_group->generator, 32);
+  hexdump(&ec_group->order, 32);
+  hexdump(ec_group->order_mont, 32);
+#endif
   EC_GROUP_free(ec_group);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(ec_group->generator, 32);
+  hexdump(&ec_group->order, 32);
+  hexdump(ec_group->order_mont, 32);
+#endif
   BN_free(ec_scalar);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= ECDSA Signature Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(sig->r, 32);
+  hexdump(sig->s, 32);
+#endif
   ECDSA_SIG_free(sig);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(sig->r, 32);
+  hexdump(sig->s, 32);
+#endif
 
   return ret;
 }
