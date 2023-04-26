@@ -745,7 +745,16 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= AES CBC Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&aes_key, 16);
+#endif
   OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(&aes_key, 16);
+#endif
 
   size_t out_len;
   uint8_t nonce[EVP_AEAD_MAX_NONCE_LENGTH];
@@ -777,7 +786,16 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
 
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n\n============= AES GCM Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&aead_ctx, 16);
+#endif
   EVP_AEAD_CTX_zero(&aead_ctx);
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER -----------\n");
+  hexdump(&aead_ctx, 16);
+#endif
 
   DES_key_schedule des1, des2, des3;
   DES_cblock des_iv;
@@ -1083,7 +1101,12 @@ int boringssl_fips_self_test(void) {
     AES_ecb_encrypt(&output[j * 128], & output[j * 128], &aes_key, AES_DECRYPT);
   }
 
+  printf("\n\n============= AES ECB Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&aes_key, 16);
   OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+  printf("\n--------- AFTER -----------\n");
+  hexdump(&aes_key, 16);
 
   /* Zeroization Tests for AES-CTR */
   unsigned int num = 0;
@@ -1100,7 +1123,12 @@ int boringssl_fips_self_test(void) {
   OPENSSL_memset(aes_iv, 0, sizeof(aes_iv));
   AES_ctr128_encrypt(output, output, out_len, &aes_key, aes_iv, ecount_buf, &num);
 
+  printf("\n\n============= AES CTR Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&aes_key, 16);
   OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+  printf("\n--------- AFTER -----------\n");
+  hexdump(&aes_key, 16);
 
   /* Zeroization Tests for AES-KW */
   /* AES-KW Wrap */
@@ -1117,7 +1145,12 @@ int boringssl_fips_self_test(void) {
   }
   out_len = AES_unwrap_key(&aes_key, NULL, output, output, out_len);
 
-  OPENSSL_cleanse(&aes_key, sizeof(aes_key));  
+  printf("\n\n============= AES KW Zeroization =============");
+  printf("\n--------- BEFORE -----------\n");
+  hexdump(&aes_key, 16);
+  OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+  printf("\n--------- AFTER -----------\n");
+  hexdump(&aes_key, 16);
 
   /* Zeroization Tests for AES-CCM */
   OPENSSL_memset(nonce, 0, sizeof(nonce));
@@ -1148,14 +1181,25 @@ int boringssl_fips_self_test(void) {
     goto err;
   }
   
+  printf("\n\n============= AES CCM Zeroization =============");
+  printf("\n--------- BEFORE (key) -----------\n");
+  hexdump(&aes_key, 16);
   OPENSSL_cleanse(&aes_key, sizeof(aes_key));
+  printf("\n--------- AFTER (key) -----------\n");
+  hexdump(&aes_key, 16);
 #endif
 
   ret = 1;
 
 err:
+#if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- BEFORE (ctx) -----------\n");
+  hexdump(&aead_ctx, 16);
+#endif
   EVP_AEAD_CTX_cleanup(&aead_ctx);
 #if defined(BORINGSSL_FIPS_BREAK_ZEROIZATION)
+  printf("\n--------- AFTER (ctx) -----------\n");
+  hexdump(&aead_ctx, 16);
   printf("\n\n============= RSA Zeroization =============");
   printf("\n--------- BEFORE -----------\n");
   hexdump(rsa_key, 16);
