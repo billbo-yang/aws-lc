@@ -1207,7 +1207,7 @@ err:
   hexdump(RSA_get0_e(rsa_key), 16);
   hexdump(RSA_get0_p(rsa_key), 16);
   hexdump(RSA_get0_q(rsa_key), 16);
-  // hexdump(RSA_get0_n(rsa_key), 16); //this likes to segfault
+  hexdump(RSA_get0_n(rsa_key), 16);
   hexdump(RSA_get0_dmp1(rsa_key), 16);
   hexdump(RSA_get0_dmq1(rsa_key), 16);
   hexdump(RSA_get0_iqmp(rsa_key), 16);
@@ -1226,7 +1226,7 @@ err:
   hexdump(RSA_get0_e(rsa_key), 16);
   hexdump(RSA_get0_p(rsa_key), 16);
   hexdump(RSA_get0_q(rsa_key), 16);
-  hexdump(RSA_get0_n(rsa_key), 16);
+  // hexdump(RSA_get0_n(rsa_key), 16); //this likes to segfault
   hexdump(RSA_get0_dmp1(rsa_key), 16);
   hexdump(RSA_get0_dmq1(rsa_key), 16);
   hexdump(RSA_get0_iqmp(rsa_key), 16);
