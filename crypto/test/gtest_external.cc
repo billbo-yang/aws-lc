@@ -20,10 +20,8 @@
 #include <openssl/rand.h>
 
 #include "abi_test.h"
-#include "gtest_main.h"
+#include "gtest_external.h"
 #include "../internal.h"
-
-int run_gtests(void);
 
 int run_gtests(void) {
   int argc = 0;
