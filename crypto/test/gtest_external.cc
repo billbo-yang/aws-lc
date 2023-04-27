@@ -18,9 +18,9 @@
 #include <gtest/gtest.h>
 
 #include <openssl/rand.h>
+#include <openssl/gtest_external.h>
 
 #include "abi_test.h"
-#include "gtest_external.h"
 #include "../internal.h"
 
 int run_gtests(void) {

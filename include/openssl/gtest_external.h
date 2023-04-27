@@ -9,7 +9,7 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 
-#include "gtest_main.h"
+#include "../../crypto/test/gtest_main.h"
 
 
 int run_gtests(void);
