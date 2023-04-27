@@ -29,3 +29,13 @@ add_library(
 )
 
 add_dependencies(boringssl_gtest_main global_target)
+
+add_library(
+  boringssl_gtest_external
+
+  OBJECT
+
+  gtest_external.cc
+)
+
+add_dependencies(boringssl_gtest_external global_target)

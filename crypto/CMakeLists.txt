@@ -662,6 +662,84 @@ if(BUILD_TESTING)
 
   add_dependencies(${CRYPTO_TEST_EXEC} global_target)
 
+  add_library(
+    gtest_external
+
+    abi_self_test.cc
+    asn1/asn1_test.cc
+    base64/base64_test.cc
+    bio/bio_test.cc
+    blake2/blake2_test.cc
+    buf/buf_test.cc
+    bytestring/bytestring_test.cc
+    chacha/chacha_test.cc
+    cipher_extra/aead_test.cc
+    cipher_extra/cipher_test.cc
+    compiler_test.cc
+    conf/conf_test.cc
+    constant_time_test.cc
+    crypto_test.cc
+    curve25519/ed25519_test.cc
+    curve25519/spake25519_test.cc
+    curve25519/x25519_test.cc
+    ecdh_extra/ecdh_test.cc
+    dh_extra/dh_test.cc
+    digest_extra/digest_test.cc
+    dsa/dsa_test.cc
+    err/err_test.cc
+    evp_extra/evp_extra_test.cc
+    evp_extra/evp_test.cc
+    evp_extra/pbkdf_test.cc
+    evp_extra/scrypt_test.cc
+    fipsmodule/aes/aes_test.cc
+    fipsmodule/bn/bn_test.cc
+    fipsmodule/cmac/cmac_test.cc
+    fipsmodule/ec/ec_test.cc
+    fipsmodule/ec/p256-nistz_test.cc
+    fipsmodule/ecdsa/ecdsa_test.cc
+    fipsmodule/md5/md5_test.cc
+    fipsmodule/modes/gcm_test.cc
+    fipsmodule/rand/ctrdrbg_test.cc
+    fipsmodule/rand/cpu_jitter_test.cc
+    fipsmodule/rand/fork_detect_test.cc
+    fipsmodule/service_indicator/service_indicator_test.cc
+    fipsmodule/sha/sha_test.cc
+    fipsmodule/cpucap/cpu_arm_linux_test.cc
+    hkdf/hkdf_test.cc
+    hpke/hpke_test.cc
+    hmac_extra/hmac_test.cc
+    hrss/hrss_test.cc
+    impl_dispatch_test.cc
+    lhash/lhash_test.cc
+    obj/obj_test.cc
+    ocsp/ocsp_test.cc
+    pem/pem_test.cc
+    pkcs7/pkcs7_test.cc
+    pkcs8/pkcs8_test.cc
+    pkcs8/pkcs12_test.cc
+    poly1305/poly1305_test.cc
+    pool/pool_test.cc
+    rand_extra/rand_test.cc
+    refcount_test.cc
+    rsa_extra/rsa_test.cc
+    rsa_extra/rsassa_pss_asn1_test.cc
+    self_test.cc
+    stack/stack_test.cc
+    siphash/siphash_test.cc
+    test/file_test_gtest.cc
+    thread_test.cc
+    trust_token/trust_token_test.cc
+    x509/x509_test.cc
+    x509/x509_time_test.cc
+    x509v3/tab_test.cc
+    x509v3/v3name_test.cc
+
+    $<TARGET_OBJECTS:crypto_test_data>
+    $<TARGET_OBJECTS:boringssl_gtest_external>
+  )
+
+  target_link_libraries(gtest_external test_support_lib boringssl_gtest crypto)
+
   target_link_libraries(${CRYPTO_TEST_EXEC} test_support_lib boringssl_gtest crypto)
   if(WIN32)
     target_link_libraries(${CRYPTO_TEST_EXEC} ws2_32)
