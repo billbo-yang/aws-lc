@@ -15,6 +15,8 @@
 #ifndef GTEST_EXTERNAL_H
 #define GTEST_EXTERNAL_H
 
-int run_gtests(void);
+#include <openssl/base.h>
+
+OPENSSL_EXPORT int run_gtests(void);
 
 #endif // GTEST_EXTERNAL_H

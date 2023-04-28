@@ -26,8 +26,8 @@
 
 
 int run_gtests(void) {
-  int argc = 0;
-  char** argv = {};
+  int argc = 2;
+  char* argv[] = {const_cast<char*>("crypto_test"), const_cast<char*>("")}; //--gtest_filter=*ServiceIndicatorTest.*
   testing::InitGoogleTest(&argc, argv);
   bssl::SetupGoogleTest();
 

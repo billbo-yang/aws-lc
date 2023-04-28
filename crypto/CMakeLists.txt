@@ -671,8 +671,7 @@ if(BUILD_TESTING)
   add_library(
     gtest_external
 
-    SHARED
-
+    test/abi_test.cc
     abi_self_test.cc
     asn1/asn1_test.cc
     base64/base64_test.cc
@@ -741,15 +740,14 @@ if(BUILD_TESTING)
     x509/x509_time_test.cc
     x509v3/tab_test.cc
     x509v3/v3name_test.cc
+    test/gtest_external.cc
 
     $<TARGET_OBJECTS:crypto_test_data>
-    $<TARGET_OBJECTS:boringssl_gtest_external>
-    # $<TARGET_OBJECTS:boringssl_gtest_main>
   )
 
   add_dependencies(gtest_external global_target)
 
-  target_link_libraries(gtest_external test_support_lib boringssl_gtest crypto)
+  target_link_libraries(gtest_external boringssl_gtest_external test_support_lib boringssl_gtest crypto)
 endif()
 
 install(TARGETS crypto
