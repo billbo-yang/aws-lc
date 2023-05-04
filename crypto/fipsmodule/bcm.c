@@ -299,8 +299,11 @@ int BORINGSSL_integrity_test(void) {
   unsigned result_len;
   HMAC_CTX hmac_ctx;
   HMAC_CTX_init(&hmac_ctx);
-  if (!HMAC_Init_ex(&hmac_ctx, kHMACKey, sizeof(kHMACKey), kHashFunction,
-                    NULL /* no ENGINE */)) {
+#if defined(BORINGSSL_FIPS_BREAK_HMAC_FORMAT)
+  if (!HMAC_Init_ex(&hmac_ctx, kHMACKey, (size_t) "ABC", kHashFunction, NULL /* no ENGINE */)) {
+#else
+  if (!HMAC_Init_ex(&hmac_ctx, kHMACKey, sizeof(kHMACKey), kHashFunction, NULL /* no ENGINE */)) {
+#endif
     fprintf(stderr, "HMAC_Init_ex failed.\n");
     return 0;
   }

@@ -120,8 +120,11 @@ TEST(ECDHTest, TestVectors) {
 
     // Test that |ECDH_compute_key_fips| hashes as expected.
     uint8_t digest[SHA256_DIGEST_LENGTH], expected_digest[SHA256_DIGEST_LENGTH];
-    ASSERT_TRUE(ECDH_compute_key_fips(digest, sizeof(digest),
-                                      peer_pub_key.get(), key.get()));
+#if defined(BORINGSSL_FIPS_BREAK_ECDH_FORMAT)
+    ASSERT_TRUE(ECDH_compute_key_fips(digest, 9999, peer_pub_key.get(), key.get()));
+#else
+    ASSERT_TRUE(ECDH_compute_key_fips(digest, sizeof(digest), peer_pub_key.get(), key.get()));
+#endif
     SHA256(z.data(), z.size(), expected_digest);
     EXPECT_EQ(Bytes(digest), Bytes(expected_digest));
   });

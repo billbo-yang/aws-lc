@@ -721,7 +721,11 @@ int boringssl_fips_self_test(void) {
 
   // AES-CBC Encryption KAT
   memcpy(aes_iv, kAESIV, sizeof(kAESIV));
+#if defined(BORINGSSL_FIPS_BREAK_AES_FORMAT)
+  if (AES_set_encrypt_key(kAESKey, 555, &aes_key) != 0) {
+#else
   if (AES_set_encrypt_key(kAESKey, 8 * sizeof(kAESKey), &aes_key) != 0) {
+#endif
     fprintf(stderr, "AES_set_encrypt_key failed.\n");
     goto err;
   }
