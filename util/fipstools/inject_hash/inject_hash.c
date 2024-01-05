@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include "common.h"
-// #include "inject_hash.h"
 #include "macho_parser.h"
 
 #include <openssl/base.h>
