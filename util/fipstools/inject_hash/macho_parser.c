@@ -1,16 +1,5 @@
-/* Copyright (c) 2017, Google Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0 OR ISC
 
 #include <stdint.h>
 #include <stdio.h>
@@ -19,7 +8,7 @@
 
 #include "macho_parser.h"
 
-int readMachOFile(const char *filename, MachOFile *macho) {
+int read_macho_file(const char *filename, MachOFile *macho) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
         perror("Error opening file");
@@ -75,7 +64,7 @@ int readMachOFile(const char *filename, MachOFile *macho) {
     return 1;
 }
 
-void freeMachOFile(MachOFile *macho) {
+void free_macho_file(MachOFile *macho) {
     free(macho->loadCommands);
     for (uint32_t i = 0; i < macho->numSections; i++) {
         free(macho->sections[i].name);
@@ -83,7 +72,7 @@ void freeMachOFile(MachOFile *macho) {
     free(macho->sections);
 }
 
-void printMachOSectionInfo(MachOFile *macho) {
+void print_macho_section_info(MachOFile *macho) {
     printf("Number of sections: %u\n", macho->numSections);
     for (uint32_t i = 0; i < macho->numSections; i++) {
         printf("Section: %s, Offset: %u, Size: %zu\n", macho->sections[i].name,
@@ -91,7 +80,7 @@ void printMachOSectionInfo(MachOFile *macho) {
     }
 }
 
-uint8_t* getMachOSectionData(char *filename, MachOFile *macho, const char *sectionName, size_t *size, uint32_t *offset) {
+uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *sectionName, size_t *size, uint32_t *offset) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
         perror("Error opening file");
@@ -125,7 +114,7 @@ uint8_t* getMachOSectionData(char *filename, MachOFile *macho, const char *secti
     return NULL;
 }
 
-uint32_t findMachOSymbolIndex(uint8_t *symbolTableData, size_t symbolTableSize, uint8_t *stringTableData, size_t stringTableSize, const char *symbolName, uint32_t *base) {
+uint32_t find_macho_symbol_index(uint8_t *symbolTableData, size_t symbolTableSize, uint8_t *stringTableData, size_t stringTableSize, const char *symbolName, uint32_t *base) {
     if (symbolTableData == NULL || stringTableData == NULL) {
         perror("Inputs cannot be null");
         return 0;

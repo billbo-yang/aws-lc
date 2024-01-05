@@ -1,16 +1,5 @@
-/* Copyright (c) 2017, Google Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0 OR ISC
 
 #ifndef MACHO_PARSER_H
 #define MACHO_PARSER_H
@@ -42,11 +31,10 @@ typedef struct {
     uint32_t numSections;
 } MachOFile;
 
-int readMachOFile(const char *filename, MachOFile *macho);
-void freeMachOFile(MachOFile *macho);
-void printMachOSectionInfo(MachOFile *macho);
-SectionInfo* getMachOSectioninfo(MachOFile *macho, const char *sectionName);
-uint8_t* getMachOSectionData(char* filename, MachOFile *macho, const char *sectionName, size_t *size, uint32_t *offset);
-uint32_t findMachOSymbolIndex(uint8_t *sectionData, size_t sectionSize, uint8_t *stringTableData, size_t stringTableSize, const char *symbolName, uint32_t *base);
+int read_macho_file(const char *filename, MachOFile *macho);
+void free_macho_file(MachOFile *macho);
+void print_macho_section_info(MachOFile *macho);
+uint8_t* get_macho_section_data(char* filename, MachOFile *macho, const char *sectionName, size_t *size, uint32_t *offset);
+uint32_t find_macho_symbol_index(uint8_t *sectionData, size_t sectionSize, uint8_t *stringTableData, size_t stringTableSize, const char *symbolName, uint32_t *base);
 
 #endif

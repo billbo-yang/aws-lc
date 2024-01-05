@@ -1,16 +1,5 @@
-/* Copyright (c) 2017, Google Inc.
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0 OR ISC
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +13,7 @@
 #include <openssl/hmac.h>
 #include <openssl/mem.h>
 
-uint8_t* readObject(const char *filename, size_t *size) {
+uint8_t* read_object(const char *filename, size_t *size) {
     FILE *file = fopen(filename, "rb");
 
     uint8_t *objectBytes = NULL;
@@ -59,7 +48,7 @@ end:
     return objectBytes;
 }
 
-int writeObject(const char *filename, uint8_t *bytes, size_t size) {
+int write_object(const char *filename, uint8_t *bytes, size_t size) {
     int ret = 0;
 
     FILE *file = fopen(filename, "wb");
@@ -81,7 +70,7 @@ end:
     return ret;
 }
 
-uint32_t findHash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, size_t hashSize) {
+uint32_t find_hash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, size_t hashSize) {
     uint8_t *ptr = memmem(objectBytes, objectBytesSize, hash, hashSize);
     if (ptr == NULL) {
         perror("Error finding hash in object");
@@ -91,7 +80,7 @@ uint32_t findHash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, s
     return ptr-objectBytes;
 }
 
-int doAppleOS(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uint8_t **rodataModule, size_t *rodataModuleSize) {
+int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uint8_t **rodataModule, size_t *rodataModuleSize) {
     uint8_t *textSection = NULL;
     size_t textSectionSize;
     uint32_t textSectionOffset;
@@ -115,33 +104,33 @@ int doAppleOS(char *objectFile, uint8_t **textModule, size_t *textModuleSize, ui
 
     int ret = 0;
 
-    if (readMachOFile(objectFile, &macho)) {
-        textSection = getMachOSectionData(objectFile, &macho, "__text", &textSectionSize, &textSectionOffset);
+    if (read_macho_file(objectFile, &macho)) {
+        textSection = get_macho_section_data(objectFile, &macho, "__text", &textSectionSize, &textSectionOffset);
         if (textSection == NULL) {
             perror("Error getting text section");
             goto end;
         }
-        rodataSection = getMachOSectionData(objectFile, &macho, "__const", &rodataSectionSize, &rodataSectionOffset);
+        rodataSection = get_macho_section_data(objectFile, &macho, "__const", &rodataSectionSize, &rodataSectionOffset);
         if (rodataSection == NULL) {
             perror("Error getting rodata section");
             goto end;
         }
-        symbolTable = getMachOSectionData(objectFile, &macho, "__symbol_table", &symbolTableSize, NULL);
+        symbolTable = get_macho_section_data(objectFile, &macho, "__symbol_table", &symbolTableSize, NULL);
         if(symbolTable == NULL) {
             perror("Error getting symbol table");
             goto end;
         }
-        stringTable = getMachOSectionData(objectFile, &macho, "__string_table", &stringTableSize, NULL);
+        stringTable = get_macho_section_data(objectFile, &macho, "__string_table", &stringTableSize, NULL);
         if(stringTable == NULL) {
             perror("Error getting string table");
             goto end;
         }
-        freeMachOFile(&macho);
+        free_macho_file(&macho);
 
-        textStart = findMachOSymbolIndex(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_text_start", &textSectionOffset);
-        textEnd = findMachOSymbolIndex(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_text_end", &textSectionOffset);
-        rodataStart = findMachOSymbolIndex(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_rodata_start", &rodataSectionOffset);
-        rodataEnd = findMachOSymbolIndex(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_rodata_end", &rodataSectionOffset);
+        textStart = find_macho_symbol_index(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_text_start", &textSectionOffset);
+        textEnd = find_macho_symbol_index(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_text_end", &textSectionOffset);
+        rodataStart = find_macho_symbol_index(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_rodata_start", &rodataSectionOffset);
+        rodataEnd = find_macho_symbol_index(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_rodata_end", &rodataSectionOffset);
 
         if (!textStart || !textEnd) {
             perror("Could not find .text module boundaries in object\n");
@@ -205,7 +194,7 @@ end:
     return ret;
 }
 
-uint8_t* sizeToLittleEndianBytes(size_t size) {
+uint8_t* size_to_little_endian_bytes(size_t size) {
     uint8_t* bytes = (uint8_t*)malloc(8);
     for (int i = 0; i < 8; ++i) {
         bytes[i] = (size >> (i * 8)) & 0xFF;
@@ -274,7 +263,7 @@ int main(int argc, char *argv[]) {
     if (arInput) {
         // Do something with archive input
     } else {
-        objectBytes = readObject(oInput, &objectBytesSize);
+        objectBytes = read_object(oInput, &objectBytesSize);
         if (objectBytes == NULL) {
             perror("Error reading file");
             goto end;
@@ -282,7 +271,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (appleFlag == 1) {
-        if (!doAppleOS(oInput, &textModule, &textModuleSize, &rodataModule, &rodataModuleSize)) {
+        if (!do_apple(oInput, &textModule, &textModuleSize, &rodataModule, &rodataModuleSize)) {
             perror("Error getting text and rodata modules from Apple OS object");
             goto end;
         }
@@ -295,7 +284,7 @@ int main(int argc, char *argv[]) {
         goto end;
     }
 
-    hashIndex = findHash(objectBytes, objectBytesSize, uninitHash, sizeof(uninitHash));
+    hashIndex = find_hash(objectBytes, objectBytesSize, uninitHash, sizeof(uninitHash));
     if (!hashIndex) {
         perror("Error finding hash");
         goto end;
@@ -309,7 +298,7 @@ int main(int argc, char *argv[]) {
     }
 
     if(rodataModule != NULL) {
-        lengthBytes = sizeToLittleEndianBytes(textModuleSize);
+        lengthBytes = size_to_little_endian_bytes(textModuleSize);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
             perror("Error in HMAC_Update() of textModuleSize");
             goto end;
@@ -320,7 +309,7 @@ int main(int argc, char *argv[]) {
             perror("Error in HMAC_Update() of textModule");
             goto end;
         }
-        lengthBytes = sizeToLittleEndianBytes(rodataModuleSize);
+        lengthBytes = size_to_little_endian_bytes(rodataModuleSize);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
             perror("Error in HMAC_Update() of rodataModuleSize");
             goto end;
@@ -346,7 +335,7 @@ int main(int argc, char *argv[]) {
     }
 
     memcpy(objectBytes + hashIndex, calculatedHash, calculatedHashLen);
-    if (!writeObject(outPath, objectBytes, objectBytesSize)) {
+    if (!write_object(outPath, objectBytes, objectBytesSize)) {
         perror("Error writing file");
         goto end;
     }
