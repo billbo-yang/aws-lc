@@ -192,13 +192,10 @@ end:
     return ret;
 }
 
-uint8_t* size_to_little_endian_bytes(size_t size) {
-    uint8_t* bytes = malloc(8);
+void size_to_little_endian_bytes(size_t size, uint8_t *result) {
     for (int i = 0; i < 8; ++i) {
-        bytes[i] = (size >> (i * 8)) & 0xFF;
+        result[i] = (size >> (i * 8)) & 0xFF;
     }
-
-    return bytes;
 }
 
 int main(int argc, char *argv[]) {
@@ -225,7 +222,7 @@ int main(int argc, char *argv[]) {
     size_t rodataModuleSize;
 
     uint8_t *calculatedHash = NULL;
-    uint8_t *lengthBytes = NULL;
+    uint8_t lengthBytes[8];
 
     uint32_t hashIndex;
 
@@ -295,23 +292,20 @@ int main(int argc, char *argv[]) {
     }
 
     if(rodataModule != NULL) {
-        lengthBytes = size_to_little_endian_bytes(textModuleSize);
+        size_to_little_endian_bytes(textModuleSize, lengthBytes);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
             LOG_ERROR("Error in HMAC_Update() of textModuleSize");
             goto end;
         }
-        free(lengthBytes);
         if (!HMAC_Update(&ctx, textModule, textModuleSize)) {
             LOG_ERROR("Error in HMAC_Update() of textModule");
             goto end;
         }
-        lengthBytes = size_to_little_endian_bytes(rodataModuleSize);
+        size_to_little_endian_bytes(rodataModuleSize, lengthBytes);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
             LOG_ERROR("Error in HMAC_Update() of rodataModuleSize");
             goto end;
         }
-        free(lengthBytes);
-        lengthBytes = NULL;
         if (!HMAC_Update(&ctx, rodataModule, rodataModuleSize)) {
             LOG_ERROR("Error in HMAC_Update() of rodataModule");
             goto end;
@@ -350,9 +344,6 @@ end:
     }
     if (calculatedHash != NULL) {
         free(calculatedHash);
-    }
-    if (lengthBytes != NULL) {
-        free(lengthBytes);
     }
     exit(ret);
 }
