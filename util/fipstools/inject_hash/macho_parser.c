@@ -16,6 +16,10 @@ int read_macho_file(const char *filename, MachOFile *macho) {
     }
 
     fread(&macho->machHeader, sizeof(MachOHeader), 1, file);
+    if(macho->machHeader.magic != MH_MAGIC_64) {
+        LOG_ERROR("File is not a 64-bit Mach-O file");
+        return 0;
+    }
 
     macho->loadCommands = malloc(macho->machHeader.sizeofcmds);
     fread(macho->loadCommands, macho->machHeader.sizeofcmds, 1, file);
