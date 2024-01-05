@@ -1,11 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0 OR ISC
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 
+#include "common.h"
 #include "inject_hash.h"
 #include "macho_parser.h"
 
@@ -19,7 +17,7 @@ uint8_t* read_object(const char *filename, size_t *size) {
     uint8_t *objectBytes = NULL;
 
     if (file == NULL) {
-        perror("Error opening file");
+        LOG_ERROR("Error opening file");
         goto end;
     }
 
@@ -30,14 +28,14 @@ uint8_t* read_object(const char *filename, size_t *size) {
     objectBytes = (uint8_t *)malloc(file_size);
 
     if (objectBytes == NULL) {
-        perror("Error allocating memory");
+        LOG_ERROR("Error allocating memory");
         goto end;
     }
 
     *size = fread(objectBytes, 1, file_size, file);
 
     if (*size != file_size) {
-        perror("Error reading file");
+        LOG_ERROR("Error reading file");
         free(objectBytes);
         objectBytes = NULL;
         goto end;
@@ -53,13 +51,13 @@ int write_object(const char *filename, uint8_t *bytes, size_t size) {
 
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
-        perror("Error opening file to write");
+        LOG_ERROR("Error opening file to write");
         goto end;
     }
 
     size_t written = fwrite(bytes, sizeof(uint8_t), size, file);
     if (written != size) {
-        perror("Error writing file");
+        LOG_ERROR("Error writing file");
         goto end;
     }
 
@@ -73,7 +71,7 @@ end:
 uint32_t find_hash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, size_t hashSize) {
     uint8_t *ptr = memmem(objectBytes, objectBytesSize, hash, hashSize);
     if (ptr == NULL) {
-        perror("Error finding hash in object");
+        LOG_ERROR("Error finding hash in object");
         return 0;
     }
 
@@ -107,22 +105,22 @@ int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uin
     if (read_macho_file(objectFile, &macho)) {
         textSection = get_macho_section_data(objectFile, &macho, "__text", &textSectionSize, &textSectionOffset);
         if (textSection == NULL) {
-            perror("Error getting text section");
+            LOG_ERROR("Error getting text section");
             goto end;
         }
         rodataSection = get_macho_section_data(objectFile, &macho, "__const", &rodataSectionSize, &rodataSectionOffset);
         if (rodataSection == NULL) {
-            perror("Error getting rodata section");
+            LOG_ERROR("Error getting rodata section");
             goto end;
         }
         symbolTable = get_macho_section_data(objectFile, &macho, "__symbol_table", &symbolTableSize, NULL);
         if(symbolTable == NULL) {
-            perror("Error getting symbol table");
+            LOG_ERROR("Error getting symbol table");
             goto end;
         }
         stringTable = get_macho_section_data(objectFile, &macho, "__string_table", &stringTableSize, NULL);
         if(stringTable == NULL) {
-            perror("Error getting string table");
+            LOG_ERROR("Error getting string table");
             goto end;
         }
         free_macho_file(&macho);
@@ -133,27 +131,27 @@ int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uin
         rodataEnd = find_macho_symbol_index(symbolTable, symbolTableSize, stringTable, stringTableSize, "_BORINGSSL_bcm_rodata_end", &rodataSectionOffset);
 
         if (!textStart || !textEnd) {
-            perror("Could not find .text module boundaries in object\n");
+            LOG_ERROR("Could not find .text module boundaries in object");
             goto end;
         }
 
         if ((!rodataStart) != (!rodataSection)) {
-            perror(".rodata start marker inconsistent with rodata section presence\n");
+            LOG_ERROR(".rodata start marker inconsistent with rodata section presence");
             goto end;
         }
 
         if ((!rodataStart) != (!rodataEnd)) {
-            perror(".rodata marker presence inconsistent\n");
+            LOG_ERROR(".rodata marker presence inconsistent");
             goto end;
         }
 
         if (textStart > textSectionSize || textStart > textEnd || textEnd > textSectionSize) {
-            fprintf(stderr, "invalid module __text boundaries: start: %x, end: %x, max: %zx", textStart, textEnd, textSectionSize);
+            LOG_ERROR("Invalid .text module boundaries: start: %x, end: %x, max: %zx", textStart, textEnd, textSectionSize);
             goto end;
         }
 
         if (rodataSection != NULL && (rodataStart > rodataSectionSize || rodataStart > rodataEnd || rodataEnd > rodataSectionSize)) {
-            fprintf(stderr, "invalid module __rodata boundaries: start: %x, end: %x, max: %zx", rodataStart, rodataEnd, rodataSectionSize);
+            LOG_ERROR("Invalid .rodata module boundaries: start: %x, end: %x, max: %zx", rodataStart, rodataEnd, rodataSectionSize);
             goto end;
         }
 
@@ -169,7 +167,7 @@ int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uin
         }
         ret = 1;
     } else {
-        perror("Error reading Mach-O file");
+        LOG_ERROR("Error reading Mach-O file");
         goto end;
     }
 
@@ -204,7 +202,6 @@ uint8_t* size_to_little_endian_bytes(size_t size) {
 }
 
 int main(int argc, char *argv[]) {
-
     char *arInput = NULL;
     char *oInput = NULL;
     char *outPath = NULL;
@@ -249,14 +246,14 @@ int main(int argc, char *argv[]) {
                 break;
             case '?':
             default:
-                fprintf(stderr, "Usage: %s [-a in-archive] [-o in-object] [-p out-path] [-f apple-flag]\n", argv[0]);
+                LOG_ERROR("Usage: %s [-a in-archive] [-o in-object] [-p out-path] [-f apple-flag]", argv[0]);
                 goto end;
         }
     }
 
     if ((arInput == NULL && oInput == NULL) || outPath == NULL) {
-        fprintf(stderr, "Usage: %s [-a in-archive] [-o in-object] [-p out-path] [-f apple-flag]\n", argv[0]);
-        fprintf(stderr, "Note that either the -a or -o option and -p options are required.\n");
+        LOG_ERROR("Usage: %s [-a in-archive] [-o in-object] [-p out-path] [-f apple-flag]", argv[0]);
+        LOG_ERROR("Note that either the -a or -o option and -p options are required.");
         goto end;
     }
 
@@ -265,14 +262,14 @@ int main(int argc, char *argv[]) {
     } else {
         objectBytes = read_object(oInput, &objectBytesSize);
         if (objectBytes == NULL) {
-            perror("Error reading file");
+            LOG_ERROR("Error reading file");
             goto end;
         }
     }
 
     if (appleFlag == 1) {
         if (!do_apple(oInput, &textModule, &textModuleSize, &rodataModule, &rodataModuleSize)) {
-            perror("Error getting text and rodata modules from Apple OS object");
+            LOG_ERROR("Error getting text and rodata modules from Apple OS object");
             goto end;
         }
     } else {
@@ -280,49 +277,49 @@ int main(int argc, char *argv[]) {
     }
 
     if(textModule == NULL || rodataModule == NULL) {
-        perror("Error getting text or rodata section");
+        LOG_ERROR("Error getting text or rodata section");
         goto end;
     }
 
     hashIndex = find_hash(objectBytes, objectBytesSize, uninitHash, sizeof(uninitHash));
     if (!hashIndex) {
-        perror("Error finding hash");
+        LOG_ERROR("Error finding hash");
         goto end;
     }
 
     uint8_t zeroKey[64] = {0};
     HMAC_CTX ctx;
     if (!HMAC_Init(&ctx, &zeroKey, sizeof(zeroKey), EVP_sha256())) {
-        perror("Error in HMAC_Init()");
+        LOG_ERROR("Error in HMAC_Init()");
         goto end;
     }
 
     if(rodataModule != NULL) {
         lengthBytes = size_to_little_endian_bytes(textModuleSize);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
-            perror("Error in HMAC_Update() of textModuleSize");
+            LOG_ERROR("Error in HMAC_Update() of textModuleSize");
             goto end;
         }
         free(lengthBytes);
         lengthBytes = NULL;
         if (!HMAC_Update(&ctx, textModule, textModuleSize)) {
-            perror("Error in HMAC_Update() of textModule");
+            LOG_ERROR("Error in HMAC_Update() of textModule");
             goto end;
         }
         lengthBytes = size_to_little_endian_bytes(rodataModuleSize);
         if (!HMAC_Update(&ctx, lengthBytes, 8)) {
-            perror("Error in HMAC_Update() of rodataModuleSize");
+            LOG_ERROR("Error in HMAC_Update() of rodataModuleSize");
             goto end;
         }
         free(lengthBytes);
         lengthBytes = NULL;
         if (!HMAC_Update(&ctx, rodataModule, rodataModuleSize)) {
-            perror("Error in HMAC_Update() of rodataModule");
+            LOG_ERROR("Error in HMAC_Update() of rodataModule");
             goto end;
         }
     } else {
         if (!HMAC_Update(&ctx, textModule, textModuleSize)) {
-            perror("Error in HMAC_Update() of textModule");
+            LOG_ERROR("Error in HMAC_Update() of textModule");
             goto end;
         }
     }
@@ -330,13 +327,13 @@ int main(int argc, char *argv[]) {
     calculatedHash = (uint8_t *)malloc(HMAC_size(&ctx));
     unsigned int calculatedHashLen;
     if (!HMAC_Final(&ctx, calculatedHash, &calculatedHashLen)) {
-        perror("Error in HMAC_Final()");
+        LOG_ERROR("Error in HMAC_Final()");
         goto end;
     }
 
     memcpy(objectBytes + hashIndex, calculatedHash, calculatedHashLen);
     if (!write_object(outPath, objectBytes, objectBytesSize)) {
-        perror("Error writing file");
+        LOG_ERROR("Error writing file");
         goto end;
     }
 

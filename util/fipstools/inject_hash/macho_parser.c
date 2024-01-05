@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0 OR ISC
 
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
+#include "common.h"
 #include "macho_parser.h"
+
+// Documentation for the Mach-O structs can be found in macho-o/loader.h and mach-o/nlist.h
 
 int read_macho_file(const char *filename, MachOFile *macho) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        perror("Error opening file");
+        LOG_ERROR("Error opening file %s", filename);
         return 0;
     }
 
@@ -83,7 +83,7 @@ void print_macho_section_info(MachOFile *macho) {
 uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *sectionName, size_t *size, uint32_t *offset) {
     FILE *file = fopen(filename, "rb");
     if (!file) {
-        perror("Error opening file");
+        LOG_ERROR("Error opening file %s", filename);
         return NULL;
     }
     for (uint32_t i = 0; i < macho->numSections; i++) {
@@ -91,7 +91,7 @@ uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *se
             uint8_t *sectionData = (uint8_t *)malloc(macho->sections[i].size);
             if (!sectionData) {
                 fclose(file);
-                perror("Memory allocation error");
+                LOG_ERROR("Error allocating memory for section data");
                 return NULL;
             }
 
@@ -116,7 +116,7 @@ uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *se
 
 uint32_t find_macho_symbol_index(uint8_t *symbolTableData, size_t symbolTableSize, uint8_t *stringTableData, size_t stringTableSize, const char *symbolName, uint32_t *base) {
     if (symbolTableData == NULL || stringTableData == NULL) {
-        perror("Inputs cannot be null");
+        LOG_ERROR("Symbol and string table pointers cannot be null to find the symbol index");
         return 0;
     }
 
@@ -132,7 +132,7 @@ uint32_t find_macho_symbol_index(uint8_t *symbolTableData, size_t symbolTableSiz
                 index = symbol->n_value;
                 found = 1;
             } else {
-                perror("Duplicate symbol %s found\n");
+                LOG_ERROR("Duplicate symbol %s found", symbolName);
                 return 0;
             }
             
