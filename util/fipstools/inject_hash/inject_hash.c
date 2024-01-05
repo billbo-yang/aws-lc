@@ -25,7 +25,7 @@ uint8_t* read_object(const char *filename, size_t *size) {
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    objectBytes = (uint8_t *)malloc(file_size);
+    objectBytes = malloc(file_size);
 
     if (objectBytes == NULL) {
         LOG_ERROR("Error allocating memory");
@@ -157,12 +157,12 @@ int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uin
 
         // Get text and rodata modules from textSection/rodataSection using the obtained indices
         *textModuleSize = textEnd - textStart;
-        *textModule = (uint8_t *)malloc(*textModuleSize);
+        *textModule = malloc(*textModuleSize);
         memcpy(*textModule, textSection + textStart, *textModuleSize);
 
         if (rodataSection != NULL) {
             *rodataModuleSize = rodataEnd - rodataStart;
-            *rodataModule = (uint8_t *)malloc(*rodataModuleSize);
+            *rodataModule = malloc(*rodataModuleSize);
             memcpy(*rodataModule, rodataSection + rodataStart, *rodataModuleSize);
         }
         ret = 1;
@@ -174,26 +174,26 @@ int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uin
 end:
     if (textSection != NULL) {
         free(textSection);
-        textSection = NULL;
+        // textSection = NULL;
     }
     if (rodataSection != NULL) {
         free(rodataSection);
-        rodataSection = NULL;
+        // rodataSection = NULL;
     }
     if (symbolTable != NULL) {
         free(symbolTable);
-        symbolTable = NULL;
+        // symbolTable = NULL;
     }
     if (stringTable != NULL) {
         free(stringTable);
-        stringTable = NULL;
+        // stringTable = NULL;
     }
 
     return ret;
 }
 
 uint8_t* size_to_little_endian_bytes(size_t size) {
-    uint8_t* bytes = (uint8_t*)malloc(8);
+    uint8_t* bytes = malloc(8);
     for (int i = 0; i < 8; ++i) {
         bytes[i] = (size >> (i * 8)) & 0xFF;
     }
@@ -301,7 +301,6 @@ int main(int argc, char *argv[]) {
             goto end;
         }
         free(lengthBytes);
-        lengthBytes = NULL;
         if (!HMAC_Update(&ctx, textModule, textModuleSize)) {
             LOG_ERROR("Error in HMAC_Update() of textModule");
             goto end;
@@ -324,7 +323,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    calculatedHash = (uint8_t *)malloc(HMAC_size(&ctx));
+    calculatedHash = malloc(HMAC_size(&ctx));
     unsigned int calculatedHashLen;
     if (!HMAC_Final(&ctx, calculatedHash, &calculatedHashLen)) {
         LOG_ERROR("Error in HMAC_Final()");
@@ -342,23 +341,18 @@ int main(int argc, char *argv[]) {
 end:
     if (textModule != NULL) {
         free(textModule);
-        textModule = NULL;
     }
     if (rodataModule != NULL) {
         free(rodataModule);
-        rodataModule = NULL;
     }
     if (objectBytes != NULL) {
         free(objectBytes);
-        objectBytes = NULL;
     }
     if (calculatedHash != NULL) {
         free(calculatedHash);
-        calculatedHash = NULL;
     }
     if (lengthBytes != NULL) {
         free(lengthBytes);
-        lengthBytes = NULL;
     }
     exit(ret);
 }

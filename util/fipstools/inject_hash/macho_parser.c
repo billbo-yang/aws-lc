@@ -17,7 +17,7 @@ int read_macho_file(const char *filename, MachOFile *macho) {
 
     fread(&macho->machHeader, sizeof(MachOHeader), 1, file);
 
-    macho->loadCommands = (LoadCommand *)malloc(macho->machHeader.sizeofcmds);
+    macho->loadCommands = malloc(macho->machHeader.sizeofcmds);
     fread(macho->loadCommands, macho->machHeader.sizeofcmds, 1, file);
 
     // Iterate through load commands to help determine how much memory to allocate for section information
@@ -33,7 +33,7 @@ int read_macho_file(const char *filename, MachOFile *macho) {
     }
 
     // Allocate memory for section information
-    macho->sections = (SectionInfo *)malloc(macho->numSections * sizeof(SectionInfo));
+    macho->sections = malloc(macho->numSections * sizeof(SectionInfo));
 
     // Iterate through load commands again to populate section information
     uint32_t sectionIndex = 0;
@@ -88,7 +88,7 @@ uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *se
     }
     for (uint32_t i = 0; i < macho->numSections; i++) {
         if (strcmp(macho->sections[i].name, sectionName) == 0) {
-            uint8_t *sectionData = (uint8_t *)malloc(macho->sections[i].size);
+            uint8_t *sectionData = malloc(macho->sections[i].size);
             if (!sectionData) {
                 fclose(file);
                 LOG_ERROR("Error allocating memory for section data");
@@ -120,7 +120,7 @@ uint32_t find_macho_symbol_index(uint8_t *symbolTableData, size_t symbolTableSiz
         return 0;
     }
 
-    char* stringTable = (char *)malloc(stringTableSize);
+    char* stringTable = malloc(stringTableSize);
     memcpy(stringTable, stringTableData, stringTableSize);
 
     int found = 0;
