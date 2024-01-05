@@ -24,19 +24,8 @@ int read_macho_file(const char *filename, MachOFile *macho) {
     macho->loadCommands = malloc(macho->machHeader.sizeofcmds);
     fread(macho->loadCommands, macho->machHeader.sizeofcmds, 1, file);
 
-    // Iterate through load commands to help determine how much memory to allocate for section information
-    macho->numSections = 0;
-    for (uint32_t i = 0; i < macho->machHeader.sizeofcmds / BIT_MODIFIER; i += macho->loadCommands[i].cmdsize / BIT_MODIFIER) {
-        if (macho->loadCommands[i].cmd == LC_SEG) {
-            SegmentLoadCommand *segment = (SegmentLoadCommand *)&macho->loadCommands[i];
-            macho->numSections += segment->nsects;
-        }
-        else if (macho->loadCommands[i].cmd == LC_SYMTAB) {
-            macho->numSections += 2;
-        }
-    }
-
-    // Allocate memory for section information
+    // We're only looking for __text, __const in the __TEXT segment, and the string & symbol tables
+    macho->numSections = 4;
     macho->sections = malloc(macho->numSections * sizeof(SectionInfo));
 
     // Iterate through load commands again to populate section information
@@ -44,13 +33,18 @@ int read_macho_file(const char *filename, MachOFile *macho) {
     for (uint32_t i = 0; i < macho->machHeader.sizeofcmds / BIT_MODIFIER; i += macho->loadCommands[i].cmdsize / BIT_MODIFIER) {
         if (macho->loadCommands[i].cmd == LC_SEG) {
             SegmentLoadCommand *segment = (SegmentLoadCommand *)&macho->loadCommands[i];
-            SectionHeader *sections = (SectionHeader *)&segment[1];
-            for (uint32_t j = 0; j < segment->nsects; j++) {
-                macho->sections[sectionIndex].offset = sections[j].offset;
-                macho->sections[sectionIndex].size = sections[j].size;
-                macho->sections[sectionIndex].name = strdup(sections[j].sectname);
-                sectionIndex++;
+            if (strcmp(segment->segname, "__TEXT") == 0) {
+                SectionHeader *sections = (SectionHeader *)&segment[1];
+                for (uint32_t j = 0; j < segment->nsects; j++) {
+                    if (strcmp(sections[j].sectname, "__text") == 0 || strcmp(sections[j].sectname, "__const") == 0) {
+                        macho->sections[sectionIndex].offset = sections[j].offset;
+                        macho->sections[sectionIndex].size = sections[j].size;
+                        macho->sections[sectionIndex].name = strdup(sections[j].sectname);
+                        sectionIndex++;
+                    }
+                }
             }
+            
         } else if (macho->loadCommands[i].cmd == LC_SYMTAB) {
             SymtabLoadCommand *symtab = (SymtabLoadCommand *)&macho->loadCommands[i];
             macho->sections[sectionIndex].offset = symtab->symoff;
@@ -114,6 +108,7 @@ uint8_t* get_macho_section_data(char *filename, MachOFile *macho, const char *se
         }
     }
 
+    LOG_ERROR("Section %s not found in macho file %s", sectionName, filename);
     fclose(file);
     return NULL;
 }

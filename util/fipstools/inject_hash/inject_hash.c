@@ -109,10 +109,7 @@ static int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSi
             goto end;
         }
         rodataSection = get_macho_section_data(objectFile, &macho, "__const", &rodataSectionSize, &rodataSectionOffset);
-        if (rodataSection == NULL) {
-            LOG_ERROR("Error getting rodata section");
-            goto end;
-        }
+        // We aren't guaranteed to have a rodata section so we don't want to error out in that case
         symbolTable = get_macho_section_data(objectFile, &macho, "__symbol_table", &symbolTableSize, NULL);
         if(symbolTable == NULL) {
             LOG_ERROR("Error getting symbol table");
@@ -172,21 +169,18 @@ static int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSi
     }
 
 end:
+    // If any of these sections are NULL, they were never allocated in the first place
     if (textSection != NULL) {
         free(textSection);
-        // textSection = NULL;
     }
     if (rodataSection != NULL) {
         free(rodataSection);
-        // rodataSection = NULL;
     }
     if (symbolTable != NULL) {
         free(symbolTable);
-        // symbolTable = NULL;
     }
     if (stringTable != NULL) {
         free(stringTable);
-        // stringTable = NULL;
     }
 
     return ret;
