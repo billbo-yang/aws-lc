@@ -4,14 +4,14 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "inject_hash.h"
+// #include "inject_hash.h"
 #include "macho_parser.h"
 
 #include <openssl/base.h>
 #include <openssl/hmac.h>
 #include <openssl/mem.h>
 
-uint8_t* read_object(const char *filename, size_t *size) {
+static uint8_t* read_object(const char *filename, size_t *size) {
     FILE *file = fopen(filename, "rb");
 
     uint8_t *objectBytes = NULL;
@@ -46,7 +46,7 @@ end:
     return objectBytes;
 }
 
-int write_object(const char *filename, uint8_t *bytes, size_t size) {
+static int write_object(const char *filename, uint8_t *bytes, size_t size) {
     int ret = 0;
 
     FILE *file = fopen(filename, "wb");
@@ -68,7 +68,7 @@ end:
     return ret;
 }
 
-uint32_t find_hash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, size_t hashSize) {
+static uint32_t find_hash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, size_t hashSize) {
     uint8_t *ptr = memmem(objectBytes, objectBytesSize, hash, hashSize);
     if (ptr == NULL) {
         LOG_ERROR("Error finding hash in object");
@@ -78,7 +78,7 @@ uint32_t find_hash(uint8_t *objectBytes, size_t objectBytesSize, uint8_t* hash, 
     return ptr-objectBytes;
 }
 
-int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uint8_t **rodataModule, size_t *rodataModuleSize) {
+static int do_apple(char *objectFile, uint8_t **textModule, size_t *textModuleSize, uint8_t **rodataModule, size_t *rodataModuleSize) {
     uint8_t *textSection = NULL;
     size_t textSectionSize;
     uint32_t textSectionOffset;
@@ -192,7 +192,7 @@ end:
     return ret;
 }
 
-void size_to_little_endian_bytes(size_t size, uint8_t *result) {
+static void size_to_little_endian_bytes(size_t size, uint8_t *result) {
     for (int i = 0; i < 8; ++i) {
         result[i] = (size >> (i * 8)) & 0xFF;
     }
@@ -333,17 +333,9 @@ int main(int argc, char *argv[]) {
     ret = EXIT_SUCCESS;
 
 end:
-    if (textModule != NULL) {
-        free(textModule);
-    }
-    if (rodataModule != NULL) {
-        free(rodataModule);
-    }
-    if (objectBytes != NULL) {
-        free(objectBytes);
-    }
-    if (calculatedHash != NULL) {
-        free(calculatedHash);
-    }
+    free(textModule);
+    free(rodataModule);
+    free(objectBytes);
+    free(calculatedHash);
     exit(ret);
 }
