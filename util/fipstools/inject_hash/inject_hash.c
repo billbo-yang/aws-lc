@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "macho_parser.h"
+#include "macho_parser/macho_parser.h"
 
 #include <openssl/base.h>
 #include <openssl/hmac.h>

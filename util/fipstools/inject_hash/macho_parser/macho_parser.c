@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "common.h"
+#include "../common.h"
 #include "macho_parser.h"
 
 // Documentation for the Mach-O structs can be found in macho-o/loader.h and mach-o/nlist.h
