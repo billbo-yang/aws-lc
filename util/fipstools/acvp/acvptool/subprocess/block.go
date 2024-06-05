@@ -18,7 +18,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/bits"
 )
 
 // aesKeyShuffle is the "AES Monte Carlo Key Shuffle" from the ACVP
@@ -119,6 +118,15 @@ func iterateAESCBC(transact func(n int, args ...[]byte) ([][]byte, error), encry
 	return mctResults
 }
 
+func onesCount8(x uint8) int {
+    count := 0
+    for x != 0 {
+        count += int(x & 1)
+        x >>= 1
+    }
+    return count
+}
+
 // xorKeyWithOddParityLSB XORs value into key while setting the LSB of each bit
 // to establish odd parity. This embedding of a parity check in a DES key is an
 // old tradition and something that NIST's tests require (despite being
@@ -127,7 +135,7 @@ func xorKeyWithOddParityLSB(key, value []byte) {
 	for i := range key {
 		v := key[i] ^ value[i]
 		// Use LSB to establish odd parity.
-		v ^= byte((bits.OnesCount8(v) & 1)) ^ 1
+		v ^= byte((onesCount8(v) & 1)) ^ 1
 		key[i] = v
 	}
 }
@@ -288,7 +296,7 @@ type blockCipherMCTResult struct {
 	Key3Hex string `json:"key3,omitempty"`
 }
 
-func (b *blockCipher) Process(vectorSet []byte, m Transactable) (any, error) {
+func (b *blockCipher) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 	var parsed blockCipherVectorSet
 	if err := json.Unmarshal(vectorSet, &parsed); err != nil {
 		return nil, err

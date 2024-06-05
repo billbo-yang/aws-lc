@@ -81,7 +81,7 @@ func isCommentLine(line []byte) bool {
 	return false
 }
 
-func jsonFromFile(out any, filename string) error {
+func jsonFromFile(out interface{}, filename string) error {
 	in, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func jsonFromFile(out any, filename string) error {
 	}
 
 	decoder := json.NewDecoder(&commentsRemoved)
-	decoder.DisallowUnknownFields()
+	// decoder.DisallowUnknownFields()
 	if err := decoder.Decode(out); err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func TOTP(secret []byte) string {
 type Middle interface {
 	Close()
 	Config() ([]byte, error)
-	Process(algorithm string, vectorSet []byte) (any, error)
+	Process(algorithm string, vectorSet []byte) (interface{}, error)
 }
 
 func loadCachedSessionTokens(server *acvp.Server, cachePath string) error {
@@ -199,7 +199,7 @@ func looksLikeVectorSetHeader(element json.RawMessage) bool {
 
 // processFile reads a file containing vector sets, at least in the format
 // preferred by our lab, and writes the results to stdout.
-func processFile(filename string, supportedAlgos []map[string]any, middle Middle) error {
+func processFile(filename string, supportedAlgos []map[string]interface{}, middle Middle) error {
 	jsonBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
@@ -268,7 +268,7 @@ func processFile(filename string, supportedAlgos []map[string]any, middle Middle
 			return fmt.Errorf("while processing vector set #%d: %s", i+1, err)
 		}
 
-		group := map[string]any{
+		group := map[string]interface{}{
 			"vsId":       commonFields.ID,
 			"testGroups": replyGroups,
 			"algorithm":  algo,
@@ -541,13 +541,13 @@ func main() {
 		log.Fatalf("failed to get config from middle: %s", err)
 	}
 
-	var supportedAlgos []map[string]any
+	var supportedAlgos []map[string]interface{}
 	if err := json.Unmarshal(configBytes, &supportedAlgos); err != nil {
 		log.Fatalf("failed to parse configuration from Middle: %s", err)
 	}
 
 	if *dumpRegcap {
-		nonTestAlgos := make([]map[string]any, 0, len(supportedAlgos))
+		nonTestAlgos := make([]map[string]interface{}, 0, len(supportedAlgos))
 		for _, algo := range supportedAlgos {
 			if value, ok := algo["acvptoolTestOnly"]; ok {
 				testOnly, ok := value.(bool)
@@ -561,7 +561,7 @@ func main() {
 			nonTestAlgos = append(nonTestAlgos, algo)
 		}
 
-		regcap := []map[string]any{
+		regcap := []map[string]interface{}{
 			{"acvVersion": "1.0"},
 			{"algorithms": nonTestAlgos},
 		}
@@ -616,7 +616,7 @@ func main() {
 		}
 	}
 
-	var algorithms []map[string]any
+	var algorithms []map[string]interface{}
 	for _, supportedAlgo := range supportedAlgos {
 		algoInterface, ok := supportedAlgo["algorithm"]
 		if !ok {
