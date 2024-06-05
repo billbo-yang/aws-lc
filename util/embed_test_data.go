@@ -22,6 +22,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -78,7 +79,7 @@ func main() {
 
 	var files []string
 	if len(*fileList) != 0 {
-		data, err := os.ReadFile(*fileList)
+		data, err := ioutil.ReadFile(*fileList)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading %s: %s.\n", *fileList, err)
 			os.Exit(1)
@@ -128,7 +129,7 @@ func main() {
 	const chunkSize = 8192
 
 	for i, arg := range files {
-		data, err := os.ReadFile(arg)
+		data, err := ioutil.ReadFile(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading %s: %s.\n", arg, err)
 			os.Exit(1)

@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	neturl "net/url"
 	"os"
 	"os/exec"
@@ -158,7 +159,7 @@ func (set ServerObjectSet) Action(action string, args []string) error {
 						}
 						set.env.server.PrefixTokens[url] = token
 						if len(set.env.config.SessionTokensCache) > 0 {
-							os.WriteFile(filepath.Join(set.env.config.SessionTokensCache, neturl.PathEscape(url))+".token", []byte(token), 0600)
+							ioutil.WriteFile(filepath.Join(set.env.config.SessionTokensCache, neturl.PathEscape(url))+".token", []byte(token), 0600)
 						}
 					}
 				}
@@ -230,7 +231,7 @@ func edit(initialContents string) ([]byte, error) {
 		return nil, err
 	}
 
-	return os.ReadFile(path)
+	return ioutil.ReadFile(path)
 }
 
 func (obj ServerObject) Action(action string, args []string) error {

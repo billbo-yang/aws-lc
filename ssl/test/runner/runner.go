@@ -32,6 +32,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/big"
 	"net"
 	"os"
@@ -242,7 +243,7 @@ func initCertificates() {
 		*testCerts[i].cert = cert
 	}
 
-	channelIDPEMBlock, err := os.ReadFile(path.Join(*resourceDir, channelIDKeyFile))
+	channelIDPEMBlock, err := ioutil.ReadFile(path.Join(*resourceDir, channelIDKeyFile))
 	if err != nil {
 		panic(err)
 	}
@@ -302,7 +303,7 @@ type delegatedCredentialConfig struct {
 
 func loadRSAPrivateKey(filename string) (priv *rsa.PrivateKey, privPKCS8 []byte, err error) {
 	pemPath := path.Join(*resourceDir, filename)
-	pemBytes, err := os.ReadFile(pemPath)
+	pemBytes, err := ioutil.ReadFile(pemPath)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -758,7 +759,7 @@ func appendTranscript(path string, data []byte) error {
 		return nil
 	}
 
-	settings, err := os.ReadFile(path)
+	settings, err := ioutil.ReadFile(path)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -17063,7 +17064,7 @@ func addJDK11WorkaroundTests() {
 
 func addDelegatedCredentialTests() {
 	certPath := path.Join(*resourceDir, rsaCertificateFile)
-	pemBytes, err := os.ReadFile(certPath)
+	pemBytes, err := ioutil.ReadFile(certPath)
 	if err != nil {
 		panic(err)
 	}
@@ -20364,7 +20365,7 @@ func main() {
 	initCertificates()
 
 	if len(*shimConfigFile) != 0 {
-		encoded, err := os.ReadFile(*shimConfigFile)
+		encoded, err := ioutil.ReadFile(*shimConfigFile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Couldn't read config file %q: %s\n", *shimConfigFile, err)
 			os.Exit(1)

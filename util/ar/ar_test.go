@@ -17,6 +17,7 @@ package ar
 import (
 	"bytes"
 	"flag"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -91,7 +92,7 @@ func TestAR(t *testing.T) {
 			}
 
 			for file, contentsPath := range test.out {
-				expected, err := os.ReadFile(test.Path(contentsPath))
+				expected, err := ioutil.ReadFile(test.Path(contentsPath))
 				if err != nil {
 					t.Fatalf("error reading %s: %s", contentsPath, err)
 				}

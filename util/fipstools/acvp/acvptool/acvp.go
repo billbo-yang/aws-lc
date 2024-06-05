@@ -29,6 +29,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	neturl "net/url"
@@ -157,7 +158,7 @@ func loadCachedSessionTokens(server *acvp.Server, cachePath string) error {
 			continue
 		}
 		path := filepath.Join(cachePath, name)
-		contents, err := os.ReadFile(path)
+		contents, err := ioutil.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("Failed to read session token cache entry %q: %s", path, err)
 		}
@@ -199,7 +200,7 @@ func looksLikeVectorSetHeader(element json.RawMessage) bool {
 // processFile reads a file containing vector sets, at least in the format
 // preferred by our lab, and writes the results to stdout.
 func processFile(filename string, supportedAlgos []map[string]any, middle Middle) error {
-	jsonBytes, err := os.ReadFile(filename)
+	jsonBytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -375,7 +376,7 @@ func connect(config *Config, sessionTokensCacheDir string) (*acvp.Server, error)
 	if len(config.CertPEMFile) == 0 {
 		return nil, errors.New("config file missing CertPEMFile")
 	}
-	certPEM, err := os.ReadFile(config.CertPEMFile)
+	certPEM, err := ioutil.ReadFile(config.CertPEMFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read certificate from %q: %s", config.CertPEMFile, err)
 	}
@@ -393,7 +394,7 @@ func connect(config *Config, sessionTokensCacheDir string) (*acvp.Server, error)
 		privateKeyFile = config.PrivateKeyFile
 	}
 
-	keyBytes, err := os.ReadFile(privateKeyFile)
+	keyBytes, err := ioutil.ReadFile(privateKeyFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key from %q: %s", privateKeyFile, err)
 	}
@@ -698,7 +699,7 @@ func main() {
 	if token := result.AccessToken; len(token) > 0 {
 		server.PrefixTokens[url] = token
 		if len(sessionTokensCacheDir) > 0 {
-			os.WriteFile(filepath.Join(sessionTokensCacheDir, neturl.PathEscape(url))+".token", []byte(token), 0600)
+			ioutil.WriteFile(filepath.Join(sessionTokensCacheDir, neturl.PathEscape(url))+".token", []byte(token), 0600)
 		}
 	}
 

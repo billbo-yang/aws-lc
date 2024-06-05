@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 )
@@ -62,7 +63,7 @@ func main() {
 		panic("invalid kat data: " + err.Error())
 	}
 
-	binaryContents, err := os.ReadFile(inPath)
+	binaryContents, err := ioutil.ReadFile(inPath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)

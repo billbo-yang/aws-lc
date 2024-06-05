@@ -23,6 +23,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -187,7 +188,7 @@ func doTest(test invocation) error {
 		expectedBytes = expectedBuf.Bytes()
 	} else {
 		// Avoid decompression if it's not compressed
-		expectedBytes, _ = os.ReadFile(test.expectedPath)
+		expectedBytes, _ = ioutil.ReadFile(test.expectedPath)
 	}
 
 	if !bytes.Equal(expectedBytes, result) {

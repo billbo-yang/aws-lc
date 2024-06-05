@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -64,7 +65,7 @@ func printResult(result Result, baseline *Result) error {
 }
 
 func readResults(path string) ([]Result, error) {
-	data, err := os.ReadFile(path)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

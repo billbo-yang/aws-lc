@@ -837,7 +837,7 @@ func generate(outPath string, config *Config) (map[string]string, error) {
 
 	for _, header := range headers {
 		filename := filepath.Join(outPath, header.Name+".html")
-		file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+		file, err := ioutuil.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -887,7 +887,7 @@ func generateIndex(outPath string, config *Config, headerDescriptions map[string
 		return err
 	}
 
-	file, err := os.OpenFile(filepath.Join(outPath, "headers.html"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+	file, err := ioutil.OpenFile(filepath.Join(outPath, "headers.html"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -901,11 +901,11 @@ func generateIndex(outPath string, config *Config, headerDescriptions map[string
 }
 
 func copyFile(outPath string, inFilePath string) error {
-	bytes, err := os.ReadFile(inFilePath)
+	bytes, err := ioutil.ReadFile(inFilePath)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(outPath, filepath.Base(inFilePath)), bytes, 0666)
+	return ioutil.WriteFile(filepath.Join(outPath, filepath.Base(inFilePath)), bytes, 0666)
 }
 
 func main() {
@@ -927,7 +927,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	configBytes, err := os.ReadFile(*configFlag)
+	configBytes, err := ioutil.ReadFile(*configFlag)
 	if err != nil {
 		fmt.Printf("Failed to open config file: %s\n", err)
 		os.Exit(1)
