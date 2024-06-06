@@ -20,10 +20,12 @@ If in doubt, use the most recent stable version of each build tool.
     `PERL_EXECUTABLE`.
     * To build without Perl (not recommended) see [this section.](#using-pre-generated-build-files)
 
-  * [Go](https://golang.org/dl/) 1.8 or later is required. If not found by
-    CMake, the go executable may be configured explicitly by setting
+  * [Go](https://golang.org/dl/) 1.8 or later is required, but we recommend 1.11 or later to take advantage of module support.
+    If not found by CMake, the go executable may be configured explicitly by setting
     `GO_EXECUTABLE`.
     * To build without Go (not recommended) see [this section.](#using-pre-generated-build-files)
+    * If using Go version < 1.11, you'll need to place the library into `src/github.com/aws/` in your `GOPATH` is in order to build properly.
+      * Check `go.mod` to see what other Go dependencies you will need to install using `go get`
 
   * Building with [Ninja](https://ninja-build.org/) instead of Make is
     recommended, because it makes builds faster. On Windows, CMake's Visual

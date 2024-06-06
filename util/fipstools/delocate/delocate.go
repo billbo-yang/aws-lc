@@ -29,8 +29,8 @@ import (
 	"strconv"
 	"strings"
 
-	"boringssl.googlesource.com/boringssl/util/ar"
-	"boringssl.googlesource.com/boringssl/util/fipstools/fipscommon"
+	"github.com/aws/aws-lc/util/ar"
+	"github.com/aws/aws-lc/util/fipstools/fipscommon"
 )
 
 // inputFile represents a textual assembly file.

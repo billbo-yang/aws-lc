@@ -32,8 +32,8 @@ import (
 	"syscall"
 	"time"
 
-	"boringssl.googlesource.com/boringssl/util/testconfig"
-	"boringssl.googlesource.com/boringssl/util/testresult"
+	"github.com/aws/aws-lc/util/testconfig"
+	"github.com/aws/aws-lc/util/testresult"
 )
 
 // TODO(davidben): Link tests with the malloc shim and port -malloc-test to this runner.

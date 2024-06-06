@@ -38,8 +38,8 @@ import (
 	"strings"
 	"time"
 
-	"boringssl.googlesource.com/boringssl/util/fipstools/acvp/acvptool/acvp"
-	"boringssl.googlesource.com/boringssl/util/fipstools/acvp/acvptool/subprocess"
+	"github.com/aws/aws-lc/util/fipstools/acvp/acvptool/acvp"
+	"github.com/aws/aws-lc/util/fipstools/acvp/acvptool/subprocess"
 )
 
 var (

@@ -303,6 +303,7 @@ func (m *Subprocess) readResult(cmd string, expectedNumResults int) ([][]byte, e
 	buf := make([]byte, 4)
 
 	if _, err := io.ReadFull(m.stdout, buf); err != nil {
+		fmt.Printf("hi\n")
 		return nil, err
 	}
 
@@ -313,6 +314,7 @@ func (m *Subprocess) readResult(cmd string, expectedNumResults int) ([][]byte, e
 
 	buf = make([]byte, 4*numResults)
 	if _, err := io.ReadFull(m.stdout, buf); err != nil {
+		fmt.Printf("hi2\n")
 		return nil, err
 	}
 
@@ -327,6 +329,7 @@ func (m *Subprocess) readResult(cmd string, expectedNumResults int) ([][]byte, e
 
 	results := make([]byte, resultsLength)
 	if _, err := io.ReadFull(m.stdout, results); err != nil {
+		fmt.Printf("hi3\n")
 		return nil, err
 	}
 

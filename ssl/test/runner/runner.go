@@ -46,9 +46,9 @@ import (
 	"syscall"
 	"time"
 
-	"boringssl.googlesource.com/boringssl/ssl/test/runner/hpke"
-	"boringssl.googlesource.com/boringssl/ssl/test/runner/ssl_transfer"
-	"boringssl.googlesource.com/boringssl/util/testresult"
+	"github.com/aws/aws-lc/ssl/test/runner/hpke"
+	"github.com/aws/aws-lc/ssl/test/runner/ssl_transfer"
+	"github.com/aws/aws-lc/util/testresult"
 	"golang.org/x/crypto/cryptobyte"
 )
 
