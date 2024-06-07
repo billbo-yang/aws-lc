@@ -5,7 +5,7 @@ package subprocess
 
 import (
 	"bytes"
-	// "encoding/binary"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -84,8 +84,7 @@ func (p *hkdfParameters) extract() (key, salt []byte, err error) {
 
 func (p *hkdfParameters) data() []byte {
 	ret := make([]byte, 4)
-	bigendian := getEndian(false)
-	bigendian.PutUint32(ret, p.OutputBits)
+	binary.BigEndian.PutUint32(ret, p.OutputBits)
 
 	return ret
 }

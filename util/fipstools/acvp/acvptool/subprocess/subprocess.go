@@ -17,7 +17,7 @@
 package subprocess
 
 import (
-	"encoding/binary"
+	// "encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -394,8 +394,8 @@ type primitive interface {
 
 func uint32le(n uint32) []byte {
 	var ret [4]byte
-	// littleendian := getEndian(true)
-	// littleendian.PutUint32(ret[:], n)
-	binary.LittleEndian.PutUint32(ret[:], n)
+	littleendian := getEndian(true)
+	littleendian.PutUint32(ret[:], n)
+	// binary.LittleEndian.PutUint32(ret[:], n)
 	return ret[:]
 }
