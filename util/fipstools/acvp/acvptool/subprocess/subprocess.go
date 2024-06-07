@@ -168,9 +168,10 @@ func (m *Subprocess) flush() error {
 	}
 
 	const cmd = "flush"
+	littleendian := getEndian(true)
 	buf := make([]byte, 8, 8+len(cmd))
-	binary.LittleEndian.PutUint32(buf, 1)
-	binary.LittleEndian.PutUint32(buf[4:], uint32(len(cmd)))
+	littleendian.PutUint32(buf, 1)
+	littleendian.PutUint32(buf[4:], uint32(len(cmd)))
 	buf = append(buf, []byte(cmd)...)
 
 	if _, err := m.stdin.Write(buf); err != nil {
@@ -216,10 +217,11 @@ func (m *Subprocess) TransactAsync(cmd string, expectedNumResults int, args [][]
 	}
 
 	buf := make([]byte, 4*(2+len(args)), 4*(2+len(args))+argLength)
-	binary.LittleEndian.PutUint32(buf, uint32(1+len(args)))
-	binary.LittleEndian.PutUint32(buf[4:], uint32(len(cmd)))
+	littleendian := getEndian(true)
+	littleendian.PutUint32(buf, uint32(1+len(args)))
+	littleendian.PutUint32(buf[4:], uint32(len(cmd)))
 	for i, arg := range args {
-		binary.LittleEndian.PutUint32(buf[4*(i+2):], uint32(len(arg)))
+		littleendian.PutUint32(buf[4*(i+2):], uint32(len(arg)))
 	}
 	buf = append(buf, []byte(cmd)...)
 	for _, arg := range args {
@@ -303,24 +305,23 @@ func (m *Subprocess) readResult(cmd string, expectedNumResults int) ([][]byte, e
 	buf := make([]byte, 4)
 
 	if _, err := io.ReadFull(m.stdout, buf); err != nil {
-		fmt.Printf("hi\n")
 		return nil, err
 	}
 
-	numResults := binary.LittleEndian.Uint32(buf)
+	littleendian := getEndian(true)
+	numResults := littleendian.Uint32(buf)
 	if int(numResults) != expectedNumResults {
 		return nil, fmt.Errorf("expected %d results from %q but got %d", expectedNumResults, cmd, numResults)
 	}
 
 	buf = make([]byte, 4*numResults)
 	if _, err := io.ReadFull(m.stdout, buf); err != nil {
-		fmt.Printf("hi2\n")
 		return nil, err
 	}
 
 	var resultsLength uint64
 	for i := uint32(0); i < numResults; i++ {
-		resultsLength += uint64(binary.LittleEndian.Uint32(buf[4*i:]))
+		resultsLength += uint64(littleendian.Uint32(buf[4*i:]))
 	}
 
 	if resultsLength > (1 << 30) {
@@ -329,14 +330,13 @@ func (m *Subprocess) readResult(cmd string, expectedNumResults int) ([][]byte, e
 
 	results := make([]byte, resultsLength)
 	if _, err := io.ReadFull(m.stdout, results); err != nil {
-		fmt.Printf("hi3\n")
 		return nil, err
 	}
 
 	ret := make([][]byte, 0, numResults)
 	var offset int
 	for i := uint32(0); i < numResults; i++ {
-		length := binary.LittleEndian.Uint32(buf[4*i:])
+		length := littleendian.Uint32(buf[4*i:])
 		ret = append(ret, results[offset:offset+int(length)])
 		offset += int(length)
 	}
@@ -394,6 +394,8 @@ type primitive interface {
 
 func uint32le(n uint32) []byte {
 	var ret [4]byte
+	// littleendian := getEndian(true)
+	// littleendian.PutUint32(ret[:], n)
 	binary.LittleEndian.PutUint32(ret[:], n)
 	return ret[:]
 }

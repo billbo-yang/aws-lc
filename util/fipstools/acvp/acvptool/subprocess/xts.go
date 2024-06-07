@@ -15,7 +15,7 @@
 package subprocess
 
 import (
-	"encoding/binary"
+	// "encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -98,6 +98,8 @@ func (h *xts) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 				return nil, fmt.Errorf("failed to decode hex in test case %d/%d: %s", group.ID, test.ID, err)
 			}
 
+			littleendian := getEndian(true)
+
 			var tweak [16]byte
 			if test.TweakHex != nil {
 				t, err := hex.DecodeString(*test.TweakHex)
@@ -112,7 +114,7 @@ func (h *xts) Process(vectorSet []byte, m Transactable) (interface{}, error) {
 				// Sector numbers (or "sequence numbers", as NIST calls them) are turned
 				// into tweak values by encoding them in little-endian form. See IEEE
 				// 1619-2007, section 5.1.
-				binary.LittleEndian.PutUint64(tweak[:8], *test.SectorNum)
+				littleendian.PutUint64(tweak[:8], *test.SectorNum)
 			} else {
 				return nil, fmt.Errorf("neither sector number nor explicit tweak in test case %d/%d", group.ID, test.ID)
 			}

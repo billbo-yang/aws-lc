@@ -15,7 +15,7 @@
 package subprocess
 
 import (
-	"encoding/binary"
+	// "encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -160,7 +160,8 @@ func (h *hashPrimitive) Process(vectorSet []byte, m Transactable) (interface{}, 
 				}
 
 				timesByteArr := make([]byte, 8)
-				binary.LittleEndian.PutUint64(timesByteArr, times)
+				littleendian := getEndian(true)
+				littleendian.PutUint64(timesByteArr, times)
 				result, err := m.Transact(h.algo+"/LDT", 1, content, timesByteArr)
 				if err != nil {
 					panic(h.algo + " LDT hash operation failed: " + err.Error())

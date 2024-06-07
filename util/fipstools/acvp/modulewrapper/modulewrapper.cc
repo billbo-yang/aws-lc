@@ -1239,10 +1239,10 @@ static bool HashMCTXof(const Span<const uint8_t> args[], ReplyCallback write_rep
 // The following logic conforms to the Large Data Tests described in
 // https://pages.nist.gov/ACVP/draft-celi-acvp-sha.html#name-large-data-tests-for-sha-1-
 // Which are the same for SHA-1, SHA2, and SHA3
-static unsigned char* BuildLDTMessage(const bssl::Span<const uint8_t> part_msg, int times) {
+static unsigned char* BuildLDTMessage(const bssl::Span<const uint8_t> part_msg, uint64_t times) {
   size_t full_msg_size = part_msg.size() * times;
   unsigned char* full_msg = (unsigned char*) malloc (full_msg_size);
-  for(int i = 0; i < times; i++) {
+  for(uint64_t i = 0; i < times; i++) {
     memcpy(full_msg + i * part_msg.size(), part_msg.data(), part_msg.size());
   }
 
@@ -1253,8 +1253,8 @@ template <uint8_t *(*OneShotHash)(const uint8_t *, size_t, uint8_t *),
           size_t DigestLength>
 static bool HashLDT(const Span<const uint8_t> args[], ReplyCallback write_reply) {
   uint8_t digest[DigestLength];
-  int times;
-  memcpy(&times, args[1].data(), sizeof(int));
+  uint64_t times;
+  memcpy(&times, args[1].data(), sizeof(times));
 
   unsigned char *msg = BuildLDTMessage(args[0], times);
 
@@ -1269,8 +1269,8 @@ static bool HashLDTSha3(const Span<const uint8_t> args[], ReplyCallback write_re
   const EVP_MD *md = MDFunc();
   unsigned int md_out_size = DigestLength;
 
-  int times;
-  memcpy(&times, args[1].data(), sizeof(int));
+  uint64_t times;
+  memcpy(&times, args[1].data(), sizeof(times));
 
   unsigned char *msg = BuildLDTMessage(args[0], times);
 
