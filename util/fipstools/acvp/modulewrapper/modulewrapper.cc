@@ -1213,7 +1213,6 @@ static bool HashMCTXof(const Span<const uint8_t> args[], ReplyCallback write_rep
   // keep things simple, we defer that complexity until/if needed.
   //
   // https://pages.nist.gov/ACVP/draft-celi-acvp-sha3.html#name-shake-monte-carlo-test
-  LOG_ERROR("hashmctxof\n");
   const unsigned output_len = 1024/8;
   const unsigned msg_size = 128/8;
   const size_t array_len = 1001;

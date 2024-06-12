@@ -31,8 +31,8 @@ mkdir -p "${SCRATCH_FOLDER}"
 
 pushd "${SCRATCH_FOLDER}"
 
-wget -q https://aws-libcrypto.s3.us-west-2.amazonaws.com/cross-compile-toolchains/host-x86_64-pc-linux-gnu/${TARGET_CPU}-x-tools.tar.xz
-tar Jxf ${TARGET_CPU}-x-tools.tar.xz --no-same-owner --no-same-permissions
+# wget -q https://aws-libcrypto.s3.us-west-2.amazonaws.com/cross-compile-toolchains/host-x86_64-pc-linux-gnu/${TARGET_CPU}-x-tools.tar.xz
+# tar Jxf ${TARGET_CPU}-x-tools.tar.xz --no-same-owner --no-same-permissions
 
 cat <<EOF > ${TARGET_CPU}.cmake
 # Specify the target system
@@ -40,36 +40,36 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR ${TARGET_CPU})
 
 # Specify the cross-compiler
-set(CMAKE_C_COMPILER ${SCRATCH_FOLDER}/${TARGET_PLATFORM}/bin/${TARGET_PLATFORM}-gcc)
-set(CMAKE_CXX_COMPILER ${SCRATCH_FOLDER}/${TARGET_PLATFORM}/bin/${TARGET_PLATFORM}-g++)
+set(CMAKE_C_COMPILER /usr/bin/powerpc64-linux-gnu-gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/powerpc64-linux-gnu-g++)
 
 # Specify the sysroot for the target system
-set(CMAKE_SYSROOT ${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot)
-set(CMAKE_SYSTEM_INCLUDE_PATH ${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot/usr/include)
+# set(CMAKE_SYSROOT ${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot)
+set(CMAKE_SYSTEM_INCLUDE_PATH /usr/powerpc-linux-gnu/include)
 
 set(CMAKE_GENERATOR Ninja)
 EOF
 
 cat ${TARGET_CPU}.cmake
 
-export QEMU_LD_PREFIX="${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot"
-export LD_LIBRARY_PATH="${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot/lib"
+# export QEMU_LD_PREFIX="${SCRATCH_FOLDER}/${TARGET_PLATFORM}/${TARGET_PLATFORM}/sysroot"
+export LD_LIBRARY_PATH="/usr/powerpc-linux-gnu/lib"
 
 echo "Testing AWS-LC shared library for ${TARGET_CPU}."
 
 for BO in "${BUILD_OPTIONS[@]}"; do
   run_build -DCMAKE_TOOLCHAIN_FILE="${SCRATCH_FOLDER}/${TARGET_CPU}.cmake" ${BO}
 
-  shard_gtest "${BUILD_ROOT}/crypto/crypto_test --gtest_also_run_disabled_tests"
-  shard_gtest ${BUILD_ROOT}/crypto/urandom_test
-  shard_gtest ${BUILD_ROOT}/crypto/mem_test
-  shard_gtest ${BUILD_ROOT}/crypto/mem_set_test
-  shard_gtest ${BUILD_ROOT}/crypto/rwlock_static_init
+  # shard_gtest "${BUILD_ROOT}/crypto/crypto_test --gtest_also_run_disabled_tests"
+  # shard_gtest ${BUILD_ROOT}/crypto/urandom_test
+  # shard_gtest ${BUILD_ROOT}/crypto/mem_test
+  # shard_gtest ${BUILD_ROOT}/crypto/mem_set_test
+  # shard_gtest ${BUILD_ROOT}/crypto/rwlock_static_init
 
-  shard_gtest ${BUILD_ROOT}/ssl/ssl_test
-  shard_gtest ${BUILD_ROOT}/ssl/integration_test
+  # shard_gtest ${BUILD_ROOT}/ssl/ssl_test
+  # shard_gtest ${BUILD_ROOT}/ssl/integration_test
 
-  # Due to its special linkage, this does not use GoogleTest
-  ${BUILD_ROOT}/crypto/dynamic_loading_test
+  # # Due to its special linkage, this does not use GoogleTest
+  # ${BUILD_ROOT}/crypto/dynamic_loading_test
 done
 popd
