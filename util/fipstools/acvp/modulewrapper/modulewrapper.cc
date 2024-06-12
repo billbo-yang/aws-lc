@@ -1136,9 +1136,9 @@ static bool HashSha3(const Span<const uint8_t> args[], ReplyCallback write_reply
 
 template <const EVP_MD *(MDFunc)()>
 static bool HashXof(const Span<const uint8_t> args[], ReplyCallback write_reply) {
-  // NOTE: Max outLen in the test vectors is 1024 bits (128 bytes). If that
+  // NOTE: Max outLen in the test vectors is 65536 bytes. If that
   //       changes, we'll need to use a bigger stack-allocated array size here.
-  uint8_t digest[128];
+  uint8_t digest[65536];
   const EVP_MD *md = MDFunc();
   const uint8_t *outlen_bytes = args[1].data();
   // MD outLen is passed to modulewrapper as a length-4 byte array representing
@@ -1213,6 +1213,7 @@ static bool HashMCTXof(const Span<const uint8_t> args[], ReplyCallback write_rep
   // keep things simple, we defer that complexity until/if needed.
   //
   // https://pages.nist.gov/ACVP/draft-celi-acvp-sha3.html#name-shake-monte-carlo-test
+  LOG_ERROR("hashmctxof\n");
   const unsigned output_len = 1024/8;
   const unsigned msg_size = 128/8;
   const size_t array_len = 1001;
