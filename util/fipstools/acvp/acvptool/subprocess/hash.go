@@ -15,7 +15,7 @@
 package subprocess
 
 import (
-	// "encoding/binary"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -111,7 +111,9 @@ func (h *hashPrimitive) Process(vectorSet []byte, m Transactable) (interface{}, 
 				args = append(args, msg)
 				if test.OutputLength != nil {
 					outLenBytes := *test.OutputLength / 8
-					args = append(args, uint32le(uint32(outLenBytes)))
+					var outLenArr [4]byte
+					binary.LittleEndian.PutUint32(outLenArr[:], uint32(outLenBytes))
+					args = append(args, outLenArr[:])
 				}
 				result, err := m.Transact(h.algo, 1, args...)
 				if err != nil {
