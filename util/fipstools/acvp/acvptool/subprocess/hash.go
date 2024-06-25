@@ -156,9 +156,13 @@ func (h *hashPrimitive) Process(vectorSet []byte, m Transactable) (interface{}, 
 					digest := msg
 					outlen := maxOutLenBytes
 
-					maxOutLenByteArr := uint32le(uint32(maxOutLenBytes))
-					minOutLenByteArr := uint32le(uint32(minOutLenBytes))
-					outLenByteArr := uint32le(uint32(outlen))
+					var maxOutLenByteArr [4]byte
+					var minOutLenByteArr [4]byte
+					var outLenByteArr [4]byte
+
+					binary.littleendian.PutUint32(maxOutLenByteArr[:], uint32(maxOutLenBytes))
+					binary.littleendian.PutUint32(minOutLenByteArr[:], uint32(minOutLenBytes))
+					binary.littleendian.PutUint32(outLenByteArr[:], uint32(outlen))
 
 					for i := 0; i < 100; i++ {
 						result, err := m.Transact(h.algo+"/MCT", 2, digest, maxOutLenByteArr, minOutLenByteArr, outLenByteArr)
@@ -168,7 +172,8 @@ func (h *hashPrimitive) Process(vectorSet []byte, m Transactable) (interface{}, 
 
 						digest = result[0]
 						outlen = uint64(binary.LittleEndian.Uint32(result[1]))
-						outLenByteArr = uint32le(uint32(outlen))
+						// outLenByteArr = uint32le(uint32(outlen))
+						binary.littleendian.PutUint32(outLenByteArr[:], uint32(outlen))
 						testResponse.MCTResults = append(testResponse.MCTResults, hashMCTResult{hex.EncodeToString(digest), uint64(len(digest) * 8)})
 					}
 				}
